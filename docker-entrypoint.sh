@@ -4,7 +4,7 @@ TEMPLATE_DIR=$HMDM_DIR/templates
 TOMCAT_DIR=/usr/local/tomcat
 BASE_DIR=$TOMCAT_DIR/work
 CACHE_DIR=$BASE_DIR/cache
-PASSWORD=123456
+CERT_PASSWORD=123456
 
 for DIR in cache files plugins logs; do
    [ -d "$BASE_DIR/$DIR" ] || mkdir "$BASE_DIR/$DIR"
@@ -42,7 +42,7 @@ if [ ! -d $TOMCAT_DIR/conf/Catalina/localhost ]; then
     mkdir -p $TOMCAT_DIR/conf/Catalina/localhost
 fi
 
-if [ -z "$_SECURE_ENROLLMENT_" ]; then
+if [ -z "$SECURE_ENROLLMENT" ]; then
     SECURE_ENROLLMENT=0
 fi
 
@@ -87,7 +87,7 @@ if [ -z "$MQTT_MSG_DELAY" ]; then
 fi
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
-    cat $TEMPLATE_DIR/conf/context_template.xml | sed "s|_SQL_HOST_|$SQL_HOST|g; s|_SQL_PORT_|$SQL_PORT|g; s|_SQL_BASE_|$SQL_BASE|g; s|_SQL_USER_|$SQL_USER|g; s|_SQL_PASS_|$SQL_PASS|g; s|_PROTOCOL_|$PROTOCOL|g; s|_BASE_DOMAIN_|$BASE_DOMAIN|g; s|_SHARED_SECRET_|$SHARED_SECRET|g; s|_SMTP_HOST_|$SMTP_HOST|g; s|_SMTP_PORT_|$SMTP_PORT|g; s|_SMTP_SSL_|$SMTP_SSL|g; s|_SMTP_STARTTLS_|$SMTP_STARTTLS|g; s|_SMTP_USERNAME_|$SMTP_USERNAME|g; s|_SMTP_PASSWORD_|$SMTP_PASSWORD|g; s|_SMTP_FROM_|$SMTP_FROM|g; s|_SMTPSSL_VER_|$SMTPSSL_VER|g; s|_MQTT_MSG_DELAY_|$MQTT_MSG_DELAY|g; s|_SECURE_ENROLLMENT_|$SECURE_ENROLLMENT|g;" > $TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml 
+    cat $TEMPLATE_DIR/conf/context_template.xml | sed "s|_SQL_HOST_|$SQL_HOST|g; s|_SQL_PORT_|$SQL_PORT|g; s|_SQL_BASE_|$SQL_BASE|g; s|_SQL_USER_|$SQL_USER|g; s|_SQL_PASS_|$SQL_PASS|g; s|_PROTOCOL_|$PROTOCOL|g; s|_BASE_DOMAIN_|$BASE_DOMAIN|g; s|_SHARED_SECRET_|$SHARED_SECRET|g; s|_SMTP_HOST_|$SMTP_HOST|g; s|_SMTP_PORT_|$SMTP_PORT|g; s|_SMTP_SSL_|$SMTP_SSL|g; s|_SMTP_STARTTLS_|$SMTP_STARTTLS|g; s|_SMTP_USERNAME_|$SMTP_USERNAME|g; s|_SMTP_PASSWORD_|$SMTP_PASSWORD|g; s|_SMTP_FROM_|$SMTP_FROM|g; s|_SMTPSSL_VER_|$SMTPSSL_VER|g; s|_MQTT_MSG_DELAY_|$MQTT_MSG_DELAY|g; s|_SECURE_ENROLLMENT_|$SECURE_ENROLLMENT|g;" > $TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml
 fi
 
 for DIR in cache files plugins logs; do
@@ -111,24 +111,23 @@ cd $BASE_DIR/files
 for FILE in $FILES_TO_DOWNLOAD; do
     FILENAME=$(basename $FILE)
     if [ ! -f "$BASE_DIR/files/$FILENAME" ]; then
-	wget $FILE
+	    wget $FILE
     fi
 done
 
 # jks is always created from the certificates
 if [ "$PROTOCOL" = "https" ]; then
     if [ "$HTTPS_LETSENCRYPT" = "true" ]; then
-	HTTPS_CERT_PATH=/etc/letsencrypt/live/$BASE_DOMAIN
+        HTTPS_CERT_PATH=/etc/letsencrypt/live/$BASE_DOMAIN
         echo "Looking for SSL keys in $HTTPS_CERT_PATH..."
-	# If started by docker-compose, let's wait until certbot completes
-	until [ -f $HTTPS_CERT_PATH/$HTTPS_PRIVKEY ]; do
+        # If started by docker-compose, let's wait until certbot completes
+        until [ -f $HTTPS_CERT_PATH/$HTTPS_PRIVKEY ]; do
             echo "Keys not found, waiting..."
-	    sleep 5
+            sleep 5
         done
     fi
-
-    openssl pkcs12 -export -out $TOMCAT_DIR/ssl/hmdm.p12 -inkey $HTTPS_CERT_PATH/$HTTPS_PRIVKEY -in $HTTPS_CERT_PATH/$HTTPS_CERT -certfile $HTTPS_CERT_PATH/$HTTPS_FULLCHAIN -password pass:$PASSWORD
-    keytool -importkeystore -destkeystore $TOMCAT_DIR/ssl/hmdm.jks -srckeystore $TOMCAT_DIR/ssl/hmdm.p12 -srcstoretype PKCS12 -srcstorepass $PASSWORD -deststorepass $PASSWORD -noprompt    
+    openssl pkcs12 -export -out $TOMCAT_DIR/ssl/hmdm.p12 -inkey $HTTPS_CERT_PATH/$HTTPS_PRIVKEY -in $HTTPS_CERT_PATH/$HTTPS_CERT -certfile $HTTPS_CERT_PATH/$HTTPS_FULLCHAIN -password pass:$CERT_PASSWORD
+    keytool -importkeystore -destkeystore $TOMCAT_DIR/ssl/hmdm.jks -srckeystore $TOMCAT_DIR/ssl/hmdm.p12 -srcstoretype PKCS12 -srcstorepass $CERT_PASSWORD -deststorepass $CERT_PASSWORD -noprompt
 fi
 
 # Waiting for the database
@@ -143,5 +142,4 @@ cat /tmp/java.security | sed "s|securerandom.source=file:/dev/random|securerando
 rm /tmp/java.security
 
 catalina.sh run
-
 #sleep 100000
