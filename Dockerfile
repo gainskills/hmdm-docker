@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-FROM tomcat:9-jdk11-temurin-jammy
+FROM tomcat:9-jdk11-temurin-noble
 
-Arg WEB_PANEL_VER=5.27.2 \
-	CLIENT_VERSION=5.28 \
+Arg WEB_PANEL_VER=5.30.3 \
+	CLIENT_VERSION=6.14 \
 	HMDM_VARIANT=os
 
 RUN apt-get update -y && apt-get upgrade -y \
@@ -57,7 +57,8 @@ EXPOSE ${HTTP_PORT} \
 	   ${MQTT_PORT}
 
 COPY docker-entrypoint.sh /
-COPY tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
-COPY templates/ /opt/hmdm/templates/
+COPY update-web-app-docker.sh /opt/hmdm/
+COPY tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml 
+ADD templates /opt/hmdm/templates/
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
