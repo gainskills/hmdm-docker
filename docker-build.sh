@@ -1,0 +1,1 @@
+docker build --build-arg WEB_PANEL_VER=5.32.1  --build-arg CLIENT_VERSION=6.16  -t hanbaobao2005/mdm:250317 .
