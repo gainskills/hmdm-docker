@@ -17,7 +17,8 @@ if [ ! -z "$LOCAL_IP" ]; then
         # Create a temporary file for sed output, then overwrite original
         # This is safer than direct in-place editing with `grep -v > /etc/hosts~` then `cp`
         sed "/$BASE_DOMAIN/d" /etc/hosts > /etc/hosts.tmp
-        mv /etc/hosts.tmp /etc/hosts
+        cp /etc/hosts.tmp /etc/hosts
+        rm -f /etc/hosts.tmp
         echo "$LOCAL_IP $BASE_DOMAIN" >> /etc/hosts
     fi
 fi
