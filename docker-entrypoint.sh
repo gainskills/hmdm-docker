@@ -6,7 +6,7 @@ TEMPLATE_DIR=$HMDM_DIR/templates
 TOMCAT_DIR=/usr/local/tomcat
 BASE_DIR=$TOMCAT_DIR/work
 CACHE_DIR=$BASE_DIR/cache
-CERT_PASSWORD=123456
+CERT_PASSWORD=xMNRpfmh4g@GDp1Y!
 
 for DIR in cache files plugins logs; do
    [ -d "$BASE_DIR/$DIR" ] || mkdir -p "$BASE_DIR/$DIR"

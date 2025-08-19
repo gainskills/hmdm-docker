@@ -97,7 +97,7 @@
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig>
 		<Certificate certificateKeystoreFile="/usr/local/tomcat/ssl/hmdm.jks"
-			certificateKeystorePassword="123456"
+			certificateKeystorePassword="xMNRpfmh4g@GDp1Y!"
                          type="EC" />
         </SSLHostConfig>
     </Connector>

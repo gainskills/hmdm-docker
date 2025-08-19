@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM tomcat:9-jdk17-temurin-noble
 
-Arg WEB_PANEL_VER=5.30.3 \
-	CLIENT_VERSION=6.14 \
+Arg WEB_PANEL_VER=5.35.3 \
+	CLIENT_VERSION=6.24 \
 	HMDM_VARIANT=os
 
 RUN apt-get update -y && apt-get upgrade -y \
