@@ -6,6 +6,10 @@ to run Headwind MDM on any Linux.
 
 Headwind MDM project URL: https://h-mdm.com
 
+## TL;DR
+
+For a quick start, proceed directly to the ["Running with the most common options by Docker Compose"](#quickstart) section.
+
 ## Summary
 
 The image is based on Ubuntu 24.04 and Tomcat 9.
@@ -88,6 +92,7 @@ FORCE_RECONFIGURE=true
 When this variable is set to true, the configuration is always re-created by the
 Headwind MDM entry point script. 
 
+<a id="quickstart"></a>
 ## Running with the most common options by Docker Compose
 
 Docker-Compose requires just two files to start Headwind MDM: 
@@ -173,6 +178,14 @@ As an alternative, you can set the parameter in the .env file:
     
 Important: this parameter should be unset after the initial setup, otherwise
 you may lose the application settings.
+
+## Configuring Headwind MDM
+
+The Headwind MDM config file is mapped to `volumes/hmdm-config/ROOT.xml`. 
+
+Restarting the container applies the changes. To avoid loss of changes, make sure 
+the `FORCE_RECONFIGURE` flag is not set in the `.env` file (this flag forces 
+the container to reset the XML config file to its default state).
 
 ## Using custom SSL certificates in Docker Compose
 
