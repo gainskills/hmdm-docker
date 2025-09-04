@@ -35,7 +35,7 @@ ENV	INSTALL_LANGUAGE=en \
 	SMTP_USERNAME=cinfo@example.com \
 	SMTP_PASSWORD=changeme \
 	SMTP-SSL_VER=TLSv1.2 \
-	# ADMIN_EMAIL=
+	ADMIN_EMAIL=
 	PROTOCOL=https \
 	# BASE_DOMAIN=your-domain.com
 	# LOCAL_IP=172.31.91.82 # Set this parameter to your local IP address
@@ -52,8 +52,8 @@ ENV	INSTALL_LANGUAGE=en \
 # If not set, they will be created only if there's no files
 	# FORCE_RECONFIGURE=true
 
-EXPOSE ${HTTP_PORT} \
-	   ${HTTPS_PORT} \
+EXPOSE 8080 \
+	   8443 \
 	   ${MQTT_PORT}
 
 COPY docker-entrypoint.sh /

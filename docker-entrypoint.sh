@@ -6,7 +6,6 @@ TEMPLATE_DIR=$HMDM_DIR/templates
 TOMCAT_DIR=/usr/local/tomcat
 BASE_DIR=$TOMCAT_DIR/work
 CACHE_DIR=$BASE_DIR/cache
-CERT_PASSWORD=xMNRpfmh4g@GDp1Y!
 
 for DIR in cache files plugins logs; do
    [ -d "$BASE_DIR/$DIR" ] || mkdir -p "$BASE_DIR/$DIR"
@@ -57,7 +56,12 @@ SMTP_PASSWORD="${SMTP_PASSWORD:-changeme}" # Consider managing this via environm
 SMTP_SSL="${SMTP_SSL:-0}"
 SMTP_STARTTLS="${SMTP_STARTTLS:-0}"
 SMTPSSL_VER="${SMTPSSL_VER:-TLSv1.2}"
+MQTT_SERVER_URI=${MQTT_SERVER_URI:-tcp://0.0.0.0:${MQTT_PORT:-31000}}
+MQTT_ADMIN_PASSWORD=${MQTT_ADMIN_PASSWORD:-dd3V5YDkrX}
+SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-K8tWyHFTwQtCF8Fp}
+MQTT_SSL_PROTOCOLS=${MQTT_SSL_PROTOCOLS:-TLSv1.2}
 MQTT_MSG_DELAY="${MQTT_MSG_DELAY:-100}"
+
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
     # Using # as sed delimiter to avoid issues if variables contain /
@@ -70,6 +74,9 @@ if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIG
         -e "s#_PROTOCOL_#$PROTOCOL#g" \
         -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
         -e "s#_SHARED_SECRET_#$SHARED_SECRET#g" \
+        -e "s#_MQTT_SERVER_URI_#$MQTT_SERVER_URI#g" \
+        -e "s#_MQTT_ADMIN_PASSWORD_#$MQTT_ADMIN_PASSWORD#g" \
+        -e "s#_SSL_KEYSTORE_PASSWORD_#$SSL_KEYSTORE_PASSWORD#g" \
         -e "s#_SMTP_HOST_#$SMTP_HOST#g" \
         -e "s#_SMTP_PORT_#$SMTP_PORT#g" \
         -e "s#_SMTP_SSL_#$SMTP_SSL#g" \
@@ -136,12 +143,12 @@ if [ "$PROTOCOL" = "https" ]; then
             -inkey "$HTTPS_CERT_PATH/$HTTPS_PRIVKEY" \
             -in "$HTTPS_CERT_PATH/$HTTPS_CERT" \
             -certfile "$HTTPS_CERT_PATH/$HTTPS_FULLCHAIN" \
-            -password "pass:$CERT_PASSWORD"
+            -password "pass:$SSL_KEYSTORE_PASSWORD"
         keytool -importkeystore \
             -destkeystore "$TOMCAT_DIR/ssl/hmdm.jks" \
             -srckeystore "$TOMCAT_DIR/ssl/hmdm.p12" -srcstoretype PKCS12 \
-            -srcstorepass "$CERT_PASSWORD" \
-            -deststorepass "$CERT_PASSWORD" -noprompt
+            -srcstorepass "$SSL_KEYSTORE_PASSWORD" \
+            -deststorepass "$SSL_KEYSTORE_PASSWORD" -noprompt
 
         if [ ! -f "$TOMCAT_DIR/ssl/hmdm.jks" ]; then
             echo "Error: Failed to create $TOMCAT_DIR/ssl/hmdm.jks"
