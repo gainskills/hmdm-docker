@@ -3,7 +3,7 @@ services:
   # To use custom SSL certificates:
   # 1. Comment out the whole certbot: section
   # 2. Create the subdirectory ./volumes/letsencrypt/live/your-domain.com/
-  # 3. Copy the private key, certificate, and full certificate chain 
+  # 3. Copy the private key, certificate, and full certificate chain
   # in the PEM (base64) format to that subdirectory. Use the following names:
   # cert.pem, fullchain.pem, privkey.pem
   #
@@ -11,12 +11,12 @@ services:
   # 1. Comment out the certbot: section
   # 2. Uncomment the port 80 forwarding
   # 3. Set the environment variable in the .env file: PROTOCOL=http
-  # 
+  #
   certbot:
     image: certbot/certbot:v1.4.0
     volumes:
       - ./volumes/letsencrypt:/etc/letsencrypt
-    ports: 
+    ports:
       - 80:80
     entrypoint: "certbot certonly --non-interactive --agree-tos -m ${ADMIN_EMAIL} --standalone -d ${BASE_DOMAIN}"
 
@@ -28,7 +28,7 @@ services:
       POSTGRES_USER: ${SQL_USER}
       POSTGRES_PASSWORD: ${SQL_PASS}
       POSTGRES_DB: ${SQL_BASE}
-    volumes: 
+    volumes:
       - ./volumes/db:/var/lib/postgresql/data
 
   hmdm:
@@ -65,3 +65,7 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
+      MQTT_PORT: ${MQTT_PORT}
+      MQTT_SERVER_URI: ${MQTT_SERVER_URI}
+      MQTT_ADMIN_PASSWORD: ${MQTT_ADMIN_PASSWORD}
+      SSL_KEYSTORE_PASSWORD: ${SSL_KEYSTORE_PASSWORD}
