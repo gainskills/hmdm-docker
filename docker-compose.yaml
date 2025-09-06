@@ -38,6 +38,9 @@ services:
       #- 80:8080
       - 443:8443
       - 31000:31000
+    # Uncomment this DNS setting if mqtt server is running over tls
+    #extra_hosts:
+    #  - "${BASE_DOMAIN}:127.0.0.1"
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
       - ./volumes/letsencrypt:/etc/letsencrypt
@@ -55,6 +58,7 @@ services:
       HMDM_VARIANT: ${HMDM_VARIANT}
       DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS}
       HMDM_URL: ${HMDM_URL}
+      SECURE_ENROLLMENT: ${SECURE_ENROLLMENT}
       CLIENT_VERSION: ${CLIENT_VERSION}
       FORCE_RECONFIGURE: ${FORCE_RECONFIGURE}
       PROTOCOL: ${PROTOCOL}

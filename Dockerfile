@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM tomcat:9-jdk17-temurin-noble
 
-Arg WEB_PANEL_VER=5.35.3 \
+ARG WEB_PANEL_VER=5.35.3 \
 	CLIENT_VERSION=6.24 \
 	HMDM_VARIANT=os
 
@@ -63,7 +63,6 @@ EXPOSE 8080 \
 
 COPY docker-entrypoint.sh /
 COPY update-web-app-docker.sh /opt/hmdm/
-COPY tomcat_conf/server.xml /usr/local/tomcat/conf/server.xml
 ADD templates /opt/hmdm/templates/
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
