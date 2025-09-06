@@ -61,6 +61,9 @@ MQTT_ADMIN_PASSWORD=${MQTT_ADMIN_PASSWORD:-dd3V5YDkrX}
 SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-K8tWyHFTwQtCF8Fp}
 MQTT_SSL_PROTOCOLS=${MQTT_SSL_PROTOCOLS:-TLSv1.2}
 MQTT_MSG_DELAY="${MQTT_MSG_DELAY:-100}"
+MQTT_CLIENT_TAG="${MQTT_CLIENT_TAG:-}"
+MQTT_EXTERNAL="${MQTT_EXTERNAL:-0}"
+SEND_STATISTICS="${SEND_STATISTICS:-}"
 
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
@@ -71,7 +74,7 @@ if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIG
         -e "s#_SQL_BASE_#$SQL_BASE#g" \
         -e "s#_SQL_USER_#$SQL_USER#g" \
         -e "s#_SQL_PASS_#$SQL_PASS#g" \
-        -e "s#_PROTOCOL_#$PROTOCOL#g" \
+        -e "s#_WEB_PROTOCOL_#$PROTOCOL#g" \
         -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
         -e "s#_SHARED_SECRET_#$SHARED_SECRET#g" \
         -e "s#_MQTT_SERVER_URI_#$MQTT_SERVER_URI#g" \
@@ -86,7 +89,10 @@ if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIG
         -e "s#_SMTP_FROM_#$SMTP_FROM#g" \
         -e "s#_SMTPSSL_VER_#$SMTPSSL_VER#g" \
         -e "s#_MQTT_MSG_DELAY_#$MQTT_MSG_DELAY#g" \
+        -e "s#_MQTT_CLIENT_TAG_#$MQTT_CLIENT_TAG#g" \
+        -e "s#_MQTT_EXTERNAL_#$MQTT_EXTERNAL#g" \
         -e "s#_SECURE_ENROLLMENT_#$SECURE_ENROLLMENT#g" \
+        -e "s#_SEND_STATISTICS_#$SEND_STATISTICS#g" \
         "$TEMPLATE_DIR/conf/context_template.xml" > "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml"
 fi
 

@@ -35,7 +35,7 @@ ENV	INSTALL_LANGUAGE=en \
 	SMTP_USERNAME=cinfo@example.com \
 	SMTP_PASSWORD=changeme \
 	SMTP-SSL_VER=TLSv1.2 \
-	ADMIN_EMAIL=
+	ADMIN_EMAIL=info@h-mdm.com \
 	PROTOCOL=https \
 	# BASE_DOMAIN=your-domain.com
 	# LOCAL_IP=172.31.91.82 # Set this parameter to your local IP address
@@ -46,15 +46,20 @@ ENV	INSTALL_LANGUAGE=en \
 	# HTTPS_CERT_PATH=/cert
 	HTTPS_CERT=cert.pem \
 	HTTPS_FULLCHAIN=fullchain.pem \
-	HTTPS_PRIVKEY=privkey.pem
+	HTTPS_PRIVKEY=privkey.pem \
+	MQTT_PORT=31000 \
+	MQTT_SERVER_URI=tcp://0.0.0.0 \
+	MQTT_ADMIN_PASSWORD=dd3V5YDkrX \
+	SSL_KEYSTORE_PASSWORD=K8tWyHFTwQtCF8Fp
 
 # Set to 1 to force updating the config files
 # If not set, they will be created only if there's no files
 	# FORCE_RECONFIGURE=true
 
+# 8080, 8443 are hardcoded in hmdm-docker/tomcat_conf/server.xml
 EXPOSE 8080 \
 	   8443 \
-	   ${MQTT_PORT}
+	   31000
 
 COPY docker-entrypoint.sh /
 COPY update-web-app-docker.sh /opt/hmdm/

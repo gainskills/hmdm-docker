@@ -12,8 +12,11 @@
     <!-- This directory is used to store uploaded app files, must be accessible for tomcat user -->
     <Parameter name="files.directory" value="/usr/local/tomcat/work/files"/>
 
+    <!-- This directory is used to store files by plugins, must be accessible for tomcat user -->
+    <Parameter name="plugins.files.directory" value="/usr/local/tomcat/work/plugins"/>
+
     <!-- URL used to open Headwind MDM control panel -->
-    <Parameter name="base.url" value="_PROTOCOL_://_BASE_DOMAIN_"/>
+    <Parameter name="base.url" value="_WEB_PROTOCOL_://_BASE_DOMAIN_"/>
 
     <!-- private / shared; shared can be used only in Enterprise solution -->
     <Parameter name="usage.scenario" value="private" />
@@ -27,14 +30,11 @@
     <!-- If set to 1, Strict-Transport-Security (HSTS) is turned on -->
 <!--    <Parameter name="strict.transport.security" value="${strict.transport.security}"/> -->
 
-    <!-- This directory is used to store files by plugins, must be accessible for tomcat user -->
-    <Parameter name="plugins.files.directory" value="/usr/local/tomcat/work/plugins"/>
+    <!-- Don't change this -->
+    <Parameter name="role.orgadmin.id" value="2"/>
 
     <!-- Configuration for logging plugin, do not change this -->
     <Parameter name="plugin.devicelog.persistence.config.class" value="com.hmdm.plugins.devicelog.persistence.postgres.DeviceLogPostgresPersistenceConfiguration"/>
-
-    <!-- Don't change this -->
-    <Parameter name="role.orgadmin.id" value="2"/>
 
     <Parameter name="initialization.completion.signal.file" value="/usr/local/tomcat/work/"/>
 
@@ -50,6 +50,12 @@
     <!-- Fast device search by last characters, here's the length -->
     <Parameter name="device.fast.search.chars" value="5"/>
 
+    <!-- Set to 1 if an external MQTT server must be used (ActiveMQ Classic is recommended) -->
+    <Parameter name="mqtt.external" value="_MQTT_EXTERNAL_"/>
+
+    <!-- Optional tag for the MQTT client (required if multiple Tomcat nodes are running) -->
+    <Parameter name="mqtt.client.tag" value="_MQTT_CLIENT_TAG_"/>
+
     <!-- Optional tag for MQTT authentication for more security
          (supported by Headwind MDM launcher v5.05 and above) -->
     <Parameter name="mqtt.auth" value="1"/>
@@ -58,6 +64,9 @@
      to avoid congestion when all devices are updating configuration at the same time -->
     <Parameter name="mqtt.message.delay" value="_MQTT_MSG_DELAY_"/>
 
+    <!-- Display X-Forwarded-For instead of source IP -->
+    <!-- <Parameter name="plugin.audit.display.forwarded.ip" value="${plugin.audit.display.forwarded.ip}"/> -->
+
     <!-- If you have any reverse proxies, specify them here (IP addresses,
     comma-separated) for correct logging of IP addresses -->
     <!-- <Parameter name="proxy.addresses" value="192.168.1.101"/> -->
@@ -65,6 +74,9 @@
     <!-- Name of the HTTP header containing the device IP address.
     Defaults to X-Real-IP -->
     <!-- <Parameter name="proxy.ip.header" value="X-Forwarded-For"/> -->
+
+    <!-- Default value for updates statistics reporting (true/false) -->
+    <Parameter name="updates.send.stats.default" value="_SEND_STATISTICS_"/>
 
     <!-- Email parameters are necessary for password recovery -->
     <Parameter name="smtp.host" value="_SMTP_HOST_"/>
