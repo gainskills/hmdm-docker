@@ -59,12 +59,11 @@ SMTPSSL_VER="${SMTPSSL_VER:-TLSv1.2}"
 MQTT_SERVER_URI=${MQTT_SERVER_URI:-tcp://0.0.0.0:${MQTT_PORT:-31000}}
 MQTT_ADMIN_PASSWORD=${MQTT_ADMIN_PASSWORD:-dd3V5YDkrX}
 SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-K8tWyHFTwQtCF8Fp}
-MQTT_SSL_PROTOCOLS=${MQTT_SSL_PROTOCOLS:-TLSv1.2}
 MQTT_MSG_DELAY="${MQTT_MSG_DELAY:-100}"
 MQTT_CLIENT_TAG="${MQTT_CLIENT_TAG:-}"
 MQTT_EXTERNAL="${MQTT_EXTERNAL:-0}"
 SEND_STATISTICS="${SEND_STATISTICS:-}"
-
+HMDM_VARIANT="${HMDM_VARIANT:-os}"
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
     # Using # as sed delimiter to avoid issues if variables contain /
@@ -145,23 +144,28 @@ if [ "$PROTOCOL" = "https" ]; then
         echo "Error: One or more HTTPS certificate path variables are not set."
         exit 1
     else
-        openssl pkcs12 -export -out "$TOMCAT_DIR/ssl/hmdm.p12" \
+        openssl pkcs12 -export -out "$TOMCAT_DIR/ssl/$BASE_DOMAIN.p12" \
             -inkey "$HTTPS_CERT_PATH/$HTTPS_PRIVKEY" \
             -in "$HTTPS_CERT_PATH/$HTTPS_CERT" \
             -certfile "$HTTPS_CERT_PATH/$HTTPS_FULLCHAIN" \
             -password "pass:$SSL_KEYSTORE_PASSWORD"
         keytool -importkeystore \
-            -destkeystore "$TOMCAT_DIR/ssl/hmdm.jks" \
-            -srckeystore "$TOMCAT_DIR/ssl/hmdm.p12" -srcstoretype PKCS12 \
+            -destkeystore "$TOMCAT_DIR/ssl/$BASE_DOMAIN.jks" \
+            -srckeystore "$TOMCAT_DIR/ssl/$BASE_DOMAIN.p12" -srcstoretype PKCS12 \
             -srcstorepass "$SSL_KEYSTORE_PASSWORD" \
             -deststorepass "$SSL_KEYSTORE_PASSWORD" -noprompt
 
-        if [ ! -f "$TOMCAT_DIR/ssl/hmdm.jks" ]; then
-            echo "Error: Failed to create $TOMCAT_DIR/ssl/hmdm.jks"
+        if [ ! -f "$TOMCAT_DIR/ssl/$BASE_DOMAIN.jks" ]; then
+            echo "Error: Failed to create $TOMCAT_DIR/ssl/$BASE_DOMAIN.jks"
             exit 1
         fi
     fi
 fi
+
+sed \
+    -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
+    -e "s#_SSL_KEYSTORE_PASSWORD_#$SSL_KEYSTORE_PASSWORD#g" \
+    "$TEMPLATE_DIR/conf/server_template.xml" > "$TOMCAT_DIR/conf/server.xml"
 
 # Waiting for the database
 until PGPASSWORD=$SQL_PASS psql -h "$SQL_HOST" -U "$SQL_USER" -d "$SQL_BASE" -c '\q'; do

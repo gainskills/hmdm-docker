@@ -96,8 +96,8 @@
           SSLEnabled="true">
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig>
-		<Certificate certificateKeystoreFile="/usr/local/tomcat/ssl/hmdm.jks"
-			certificateKeystorePassword="xMNRpfmh4g@GDp1Y!"
+		<Certificate certificateKeystoreFile="/usr/local/tomcat/ssl/_BASE_DOMAIN_.jks"
+			certificateKeystorePassword="_SSL_KEYSTORE_PASSWORD_"
                          type="EC" />
         </SSLHostConfig>
     </Connector>
