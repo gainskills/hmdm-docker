@@ -1,1 +1,1 @@
-docker build --build-arg WEB_PANEL_VER=5.36.1 --build-arg CLIENT_VERSION=6.24 -t hanbaobao2005/mdm:250906_mqtts .
+docker build --build-arg WEB_PANEL_VER=5.37.1 --build-arg CLIENT_VERSION=6.26 -t hanbaobao2005/mdm:251010 .

@@ -29,7 +29,7 @@ if [ ! -f "$CACHE_DIR/$HMDM_WAR" ]; then
 fi
 
 if [ ! -f "$TOMCAT_DIR/webapps/ROOT.war" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
-    cp $CACHE_DIR/$HMDM_WAR $TOMCAT_DIR/webapps/ROOT.war
+    cp -r $CACHE_DIR/$HMDM_WAR $TOMCAT_DIR/webapps/ROOT.war
 fi
 
 "$HMDM_DIR/update-web-app-docker.sh"
@@ -62,8 +62,11 @@ SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-K8tWyHFTwQtCF8Fp}
 MQTT_MSG_DELAY="${MQTT_MSG_DELAY:-100}"
 MQTT_CLIENT_TAG="${MQTT_CLIENT_TAG:-}"
 MQTT_EXTERNAL="${MQTT_EXTERNAL:-0}"
-SEND_STATISTICS="${SEND_STATISTICS:-}"
+SEND_STATISTICS="${SEND_STATISTICS:-1}"
 HMDM_VARIANT="${HMDM_VARIANT:-os}"
+JWT_SECRETKEY="${JWT_SECRETKEY:-20c68f0d9185b1d18cf6add1e8b491fd89529a44}"
+JWT_VALIDITY="${JWT_VALIDITY:-86400}"
+JWT_VALIDITYREMEMBERME="${JWT_VALIDITYREMEMBERME:-2592000}"
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
     # Using # as sed delimiter to avoid issues if variables contain /
@@ -92,6 +95,9 @@ if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIG
         -e "s#_MQTT_EXTERNAL_#$MQTT_EXTERNAL#g" \
         -e "s#_SECURE_ENROLLMENT_#$SECURE_ENROLLMENT#g" \
         -e "s#_SEND_STATISTICS_#$SEND_STATISTICS#g" \
+        -e "s#_JWT_SECRETKEY_#$JWT_SECRETKEY#g" \
+        -e "s#_JWT_VALIDITY_#$JWT_VALIDITY#g" \
+        -e "s#_JWT_VALIDITYREMEMBERME_#$JWT_VALIDITYREMEMBERME#g" \
         "$TEMPLATE_DIR/conf/context_template.xml" > "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml"
 fi
 
@@ -105,6 +111,8 @@ if [ ! -f "$BASE_DIR/init.sql" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
         -e "s#_ADMIN_EMAIL_#$ADMIN_EMAIL#g" \
         -e "s#_HMDM_VERSION_#$CLIENT_VERSION#g" \
         -e "s#_HMDM_VARIANT_#$HMDM_VARIANT#g" \
+        -e "s#_WEB_PROTOCOL_#$PROTOCOL#g" \
+        -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
         "$TEMPLATE_DIR/sql/hmdm_init.$INSTALL_LANGUAGE.sql" > "$BASE_DIR/init1.sql"
 
     FILES_TO_DOWNLOAD=$(grep 'https://h-mdm.com' "$BASE_DIR/init1.sql" | awk '{ print $4 }' | sed "s/'//g; s/)//g; s/,//g")
