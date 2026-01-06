@@ -46,7 +46,7 @@ if [ ! -d "$TOMCAT_DIR/conf/Catalina/localhost" ]; then
     mkdir -p "$TOMCAT_DIR/conf/Catalina/localhost"
 fi
 
-SECURE_ENROLLMENT="${SECURE_ENROLLMENT:-0}"
+SECURE_ENROLLMENT="${SECURE_ENROLLMENT:-1}"
 PROTOCOL="${PROTOCOL:-https}"
 SMTP_PORT="${SMTP_PORT:-587}"
 SMTP_HOST="${SMTP_HOST:-smtp.office365.com}"
@@ -67,37 +67,48 @@ HMDM_VARIANT="${HMDM_VARIANT:-os}"
 JWT_SECRETKEY="${JWT_SECRETKEY:-20c68f0d9185b1d18cf6add1e8b491fd89529a44}"
 JWT_VALIDITY="${JWT_VALIDITY:-86400}"
 JWT_VALIDITYREMEMBERME="${JWT_VALIDITYREMEMBERME:-2592000}"
+REBRANDING_NAME="${REBRANDING_NAME:-}"
+REBRANDING_VENDOR_NAME="${REBRANDING_VENDOR_NAME:-}"
+REBRANDING_VENDOR_LINK="${REBRANDING_VENDOR_LINK:-}"
+REBRANDING_SIGNUP_LINK="${REBRANDING_SIGNUP_LINK:-}"
+REBRANDING_TERMS_LINK="${REBRANDING_TERMS_LINK:-}"
 
 if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIGURE" = "true" ]; then
-    # Using # as sed delimiter to avoid issues if variables contain /
+    # Using Ctrl+A (hex 01) as a delimiter because it's almost never in a password
+    DELIM=$(printf '\001')
     sed \
-        -e "s#_SQL_HOST_#$SQL_HOST#g" \
-        -e "s#_SQL_PORT_#$SQL_PORT#g" \
-        -e "s#_SQL_BASE_#$SQL_BASE#g" \
-        -e "s#_SQL_USER_#$SQL_USER#g" \
-        -e "s#_SQL_PASS_#$SQL_PASS#g" \
-        -e "s#_WEB_PROTOCOL_#$PROTOCOL#g" \
-        -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
-        -e "s#_SHARED_SECRET_#$SHARED_SECRET#g" \
-        -e "s#_MQTT_SERVER_URI_#$MQTT_SERVER_URI#g" \
-        -e "s#_MQTT_ADMIN_PASSWORD_#$MQTT_ADMIN_PASSWORD#g" \
-        -e "s#_SSL_KEYSTORE_PASSWORD_#$SSL_KEYSTORE_PASSWORD#g" \
-        -e "s#_SMTP_HOST_#$SMTP_HOST#g" \
-        -e "s#_SMTP_PORT_#$SMTP_PORT#g" \
-        -e "s#_SMTP_SSL_#$SMTP_SSL#g" \
-        -e "s#_SMTP_STARTTLS_#$SMTP_STARTTLS#g" \
-        -e "s#_SMTP_USERNAME_#$SMTP_USERNAME#g" \
-        -e "s#_SMTP_PASSWORD_#$SMTP_PASSWORD#g" \
-        -e "s#_SMTP_FROM_#$SMTP_FROM#g" \
-        -e "s#_SMTPSSL_VER_#$SMTPSSL_VER#g" \
-        -e "s#_MQTT_MSG_DELAY_#$MQTT_MSG_DELAY#g" \
-        -e "s#_MQTT_CLIENT_TAG_#$MQTT_CLIENT_TAG#g" \
-        -e "s#_MQTT_EXTERNAL_#$MQTT_EXTERNAL#g" \
-        -e "s#_SECURE_ENROLLMENT_#$SECURE_ENROLLMENT#g" \
-        -e "s#_SEND_STATISTICS_#$SEND_STATISTICS#g" \
-        -e "s#_JWT_SECRETKEY_#$JWT_SECRETKEY#g" \
-        -e "s#_JWT_VALIDITY_#$JWT_VALIDITY#g" \
-        -e "s#_JWT_VALIDITYREMEMBERME_#$JWT_VALIDITYREMEMBERME#g" \
+        -e "s${DELIM}_SQL_HOST_${DELIM}$SQL_HOST${DELIM}g" \
+        -e "s${DELIM}_SQL_PORT_${DELIM}$SQL_PORT${DELIM}g" \
+        -e "s${DELIM}_SQL_BASE_${DELIM}$SQL_BASE${DELIM}g" \
+        -e "s${DELIM}_SQL_USER_${DELIM}$SQL_USER${DELIM}g" \
+        -e "s${DELIM}_SQL_PASS_${DELIM}$SQL_PASS${DELIM}g" \
+        -e "s${DELIM}_WEB_PROTOCOL_${DELIM}$PROTOCOL${DELIM}g" \
+        -e "s${DELIM}_BASE_DOMAIN_${DELIM}$BASE_DOMAIN${DELIM}g" \
+        -e "s${DELIM}_SHARED_SECRET_${DELIM}$SHARED_SECRET${DELIM}g" \
+        -e "s${DELIM}_MQTT_SERVER_URI_${DELIM}$MQTT_SERVER_URI${DELIM}g" \
+        -e "s${DELIM}_MQTT_ADMIN_PASSWORD_${DELIM}$MQTT_ADMIN_PASSWORD${DELIM}g" \
+        -e "s${DELIM}_SSL_KEYSTORE_PASSWORD_${DELIM}$SSL_KEYSTORE_PASSWORD${DELIM}g" \
+        -e "s${DELIM}_SMTP_HOST_${DELIM}$SMTP_HOST${DELIM}g" \
+        -e "s${DELIM}_SMTP_PORT_${DELIM}$SMTP_PORT${DELIM}g" \
+        -e "s${DELIM}_SMTP_SSL_${DELIM}$SMTP_SSL${DELIM}g" \
+        -e "s${DELIM}_SMTP_STARTTLS_${DELIM}$SMTP_STARTTLS${DELIM}g" \
+        -e "s${DELIM}_SMTP_USERNAME_${DELIM}$SMTP_USERNAME${DELIM}g" \
+        -e "s${DELIM}_SMTP_PASSWORD_${DELIM}$SMTP_PASSWORD${DELIM}g" \
+        -e "s${DELIM}_SMTP_FROM_${DELIM}$SMTP_FROM${DELIM}g" \
+        -e "s${DELIM}_SMTPSSL_VER_${DELIM}$SMTPSSL_VER${DELIM}g" \
+        -e "s${DELIM}_MQTT_MSG_DELAY_${DELIM}$MQTT_MSG_DELAY${DELIM}g" \
+        -e "s${DELIM}_MQTT_CLIENT_TAG_${DELIM}$MQTT_CLIENT_TAG${DELIM}g" \
+        -e "s${DELIM}_MQTT_EXTERNAL_${DELIM}$MQTT_EXTERNAL${DELIM}g" \
+        -e "s${DELIM}_SECURE_ENROLLMENT_${DELIM}$SECURE_ENROLLMENT${DELIM}g" \
+        -e "s${DELIM}_SEND_STATISTICS_${DELIM}$SEND_STATISTICS${DELIM}g" \
+        -e "s${DELIM}_JWT_SECRETKEY_${DELIM}$JWT_SECRETKEY${DELIM}g" \
+        -e "s${DELIM}_JWT_VALIDITY_${DELIM}$JWT_VALIDITY${DELIM}g" \
+        -e "s${DELIM}_JWT_VALIDITYREMEMBERME_${DELIM}$JWT_VALIDITYREMEMBERME${DELIM}g" \
+        -e "s${DELIM}_REBRANDING_NAME_${DELIM}$REBRANDING_NAME${DELIM}g" \
+        -e "s${DELIM}_REBRANDING_VENDOR_NAME_${DELIM}$REBRANDING_VENDOR_NAME${DELIM}g" \
+        -e "s${DELIM}_REBRANDING_VENDOR_LINK_${DELIM}$REBRANDING_VENDOR_LINK${DELIM}g" \
+        -e "s${DELIM}_REBRANDING_SIGNUP_LINK_${DELIM}$REBRANDING_SIGNUP_LINK${DELIM}g" \
+        -e "s${DELIM}_REBRANDING_TERMS_LINK_${DELIM}$REBRANDING_TERMS_LINK${DELIM}g" \
         "$TEMPLATE_DIR/conf/context_template.xml" > "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml"
 fi
 

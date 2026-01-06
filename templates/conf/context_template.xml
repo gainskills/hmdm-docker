@@ -78,6 +78,15 @@
     <!-- Default value for updates statistics reporting (true/false) -->
     <Parameter name="updates.send.stats.default" value="_SEND_STATISTICS_"/>
 
+     <!-- Rebranding parameters -->
+    <Parameter name="rebranding.name" value="_REBRANDING_NAME_"/>
+    <Parameter name="rebranding.vendor.name" value="_REBRANDING_VENDOR_NAME_"/>
+    <Parameter name="rebranding.vendor.link" value="_REBRANDING_VENDOR_LINK_"/>
+    <!-- <Parameter name="rebranding.logo" value="_REBRANDING_LOGO_"/> -->
+    <Parameter name="rebranding.mobile.name" value="_REBRANDING_NAME_"/>
+    <Parameter name="rebranding.signup.link" value="_REBRANDING_SIGNUP_LINK_"/>
+    <Parameter name="rebranding.terms.link" value="_REBRANDING_TERMS_LINK_"/>
+
     <!-- Email parameters are necessary for password recovery -->
     <Parameter name="smtp.host" value="_SMTP_HOST_"/>
     <Parameter name="smtp.port" value="_SMTP_PORT_"/>
