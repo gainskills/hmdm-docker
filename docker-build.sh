@@ -1,1 +1,1 @@
-docker build --build-arg WEB_PANEL_VER=5.37.3 --build-arg CLIENT_VERSION=6.29 -t hanbaobao2005/mdm:260106 .
+docker build --build-arg WEB_PANEL_VER=5.37.3 --build-arg CLIENT_VERSION=6.29 -t hanbaobao2005/mdm:java21 .
