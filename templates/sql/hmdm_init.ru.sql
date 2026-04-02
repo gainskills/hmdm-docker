@@ -2,7 +2,7 @@ UPDATE users SET email='_ADMIN_EMAIL_', passwordReset=true, passwordResetToken=m
 
 INSERT INTO settings (id, backgroundcolor, textcolor, backgroundimageurl, iconsize, desktopheader, customerid, usedefaultlanguage, language) VALUES (1, '#1c40e3', '#fcfcfc', NULL, 'SMALL', 'NO_HEADER', 1, true, NULL);
 
-INSERT INTO userrolesettings (id, roleid, customerid, columndisplayeddevicestatus, columndisplayeddevicedate, columndisplayeddevicenumber, columndisplayeddevicemodel, columndisplayeddevicepermissionsstatus, columndisplayeddeviceappinstallstatus, columndisplayeddeviceconfiguration, columndisplayeddeviceimei, columndisplayeddevicephone, columndisplayeddevicedesc, columndisplayeddevicegroup, columndisplayedlauncherversion) VALUES 
+INSERT INTO userrolesettings (id, roleid, customerid, columndisplayeddevicestatus, columndisplayeddevicedate, columndisplayeddevicenumber, columndisplayeddevicemodel, columndisplayeddevicepermissionsstatus, columndisplayeddeviceappinstallstatus, columndisplayeddeviceconfiguration, columndisplayeddeviceimei, columndisplayeddevicephone, columndisplayeddevicedesc, columndisplayeddevicegroup, columndisplayedlauncherversion) VALUES
 (1, 1, 1, true, true, true, NULL, true, true, true, NULL, NULL, NULL, NULL, NULL),
 (2, 2, 1, true, true, true, NULL, true, true, true, NULL, NULL, NULL, NULL, NULL),
 (3, 3, 1, true, true, true, NULL, true, true, true, NULL, NULL, NULL, NULL, NULL),
@@ -12,7 +12,7 @@ SELECT pg_catalog.setval('public.settings_id_seq', 1, true);
 
 ALTER TABLE applications DROP CONSTRAINT applications_latestversion_fkey;
 
-INSERT INTO applications (id, pkg, name, showicon, customerid, system, latestversion, runafterinstall) VALUES 
+INSERT INTO applications (id, pkg, name, showicon, customerid, system, latestversion, runafterinstall) VALUES
     (1, 'com.android.systemui', 'Системный интерфейс', false, 1, true, 10000, false),
     (2, 'com.android.bluetooth', 'Сервис Bluetooth', false, 1, true, 10001, false),
     (3, 'com.google.android.gms', 'Сервисы Google', false, 1, true, 10002, false),
@@ -87,10 +87,10 @@ INSERT INTO applications (id, pkg, name, showicon, customerid, system, latestver
 	(75, 'com.huawei.bluetooth', 'Huawei Bluetooth', false, 1, true, 10074, false),
 	(76, 'com.google.android.gms.setup', 'Настройка Google Services', false, 1, true, 10075, false),
 	(77, 'com.samsung.android.app.telephonyui', 'Samsung Телефония', false, 1, true, 10076, false);
-	
+
 SELECT pg_catalog.setval('public.applications_id_seq', 77, true);
 
-INSERT INTO applicationversions (id, applicationid, version, url) VALUES 
+INSERT INTO applicationversions (id, applicationid, version, url) VALUES
     (10000, 1, '0', NULL),
     (10001, 2, '0', NULL),
     (10002, 3, '0', NULL),
@@ -133,7 +133,7 @@ INSERT INTO applicationversions (id, applicationid, version, url) VALUES
     (10040, 41, '0', NULL),
     (10041, 42, '0', NULL),
     (10042, 43, '0', NULL),
-    (10045, 46, '_HMDM_VERSION_', 'https://h-mdm.com/files/hmdm-_HMDM_VERSION_-_HMDM_VARIANT_.apk'),
+    (10045, 46, '_HMDM_CLIENT_VERSION_', 'https://h-mdm.com/files/hmdm-_HMDM_CLIENT_VERSION_-_HMDM_VARIANT_.apk'),
     (10046, 47, '0', NULL),
     (10047, 48, '1.02', 'https://h-mdm.com/files/pager-1.02.apk'),
     (10048, 49, '1.02', 'https://h-mdm.com/files/phoneproxy-1.02.apk'),
@@ -165,19 +165,19 @@ INSERT INTO applicationversions (id, applicationid, version, url) VALUES
     (10074, 75, '0', NULL),
     (10075, 76, '0', NULL),
     (10076, 77, '0', NULL);
-    
+
 SELECT pg_catalog.setval('public.applicationversions_id_seq', 10076, true);
 
 ALTER TABLE applications ADD CONSTRAINT applications_latestversion_fkey FOREIGN KEY (latestversion) REFERENCES applicationversions(id) ON DELETE SET NULL;
 
 DELETE FROM configurations;
-INSERT INTO configurations (id, name, description, type, password, backgroundcolor, textcolor, backgroundimageurl, iconsize, desktopheader, usedefaultdesignsettings, customerid, gps, bluetooth, wifi, mobiledata, mainappid, eventreceivingcomponent, kioskmode, qrcodekey, contentappid,autoupdate, blockstatusbar, systemupdatetype, systemupdatefrom, systemupdateto, pushoptions) VALUES 
+INSERT INTO configurations (id, name, description, type, password, backgroundcolor, textcolor, backgroundimageurl, iconsize, desktopheader, usedefaultdesignsettings, customerid, gps, bluetooth, wifi, mobiledata, mainappid, eventreceivingcomponent, kioskmode, qrcodekey, contentappid,autoupdate, blockstatusbar, systemupdatetype, systemupdatefrom, systemupdateto, pushoptions) VALUES
 (1, 'По умолчанию', 'Подходит для большинства устройств; минимальный набор приложений на экране', 0, '12345678', '', '', NULL, 'SMALL', 'NO_HEADER', true, 1, NULL, NULL, NULL, NULL, 10045, 'com.hmdm.launcher.AdminReceiver', false, '6fb9c8dc81483173a0c0e9f8b2e46be1', NULL, false, false, 0, NULL, NULL, 'mqttAlarm'),
 (2, 'MIUI (Xiaomi Redmi)', 'Оптимизирована для устройств на базе MIUI', 0, '12345678', '', '', NULL, 'SMALL', 'NO_HEADER', true, 1, NULL, NULL, NULL, NULL, 10045, 'com.hmdm.launcher.AdminReceiver', false, '8e6ca072ddb926a1af61578dfa9fc334', NULL, false, false, 0, NULL, NULL, 'mqttAlarm');
 
 SELECT pg_catalog.setval('public.configurations_id_seq', 2, true);
 
-INSERT INTO configurationapplications (id, configurationid, applicationid, remove, showicon, applicationversionid) VALUES 
+INSERT INTO configurationapplications (id, configurationid, applicationid, remove, showicon, applicationversionid) VALUES
     (2, 1, 8, false, true, 10007),
     (3, 1, 37, false, false, 10036),
     (4, 1, 2, false, false, 10001),
@@ -272,7 +272,7 @@ INSERT INTO configurationapplications (id, configurationid, applicationid, remov
     (94, 1, 75, false, false, 10074),
     (95, 1, 76, false, false, 10075),
     (96, 1, 77, false, false, 10076);
-    
+
 SELECT pg_catalog.setval('public.configurationapplications_id_seq', 96, true);
 
 INSERT INTO devices (id, number, description, lastupdate, configurationid, oldconfigurationid, info, imei, phone, customerid) VALUES (1, 'h0001', 'Мое первое Android-устройство', 0, 1, NULL, NULL, NULL, NULL, 1);

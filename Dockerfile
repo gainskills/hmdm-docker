@@ -1,26 +1,15 @@
 # syntax=docker/dockerfile:1
 FROM tomcat:11-jdk21-temurin-noble
 
-ARG WEB_PANEL_VER=5.37.3 \
-	CLIENT_VERSION=6.29 \
-	HMDM_VARIANT=os
-
-RUN apt-get update -y && apt-get upgrade -y \
-	&& apt-get install -y --no-install-recommends \
-	aapt \
-	wget \
-	sed \
-	postgresql-client \
-	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
-    && mkdir -p /usr/local/tomcat/ssl
+ARG CLIENT_VERSION=6.29 \
+	HMDM_URL=https://h-mdm.com/files/hmdm-5.38.1-os.war
 
 # Available values of INSTALL_LANGUAGE: en, ru (en by default)
 # value of SHARED_SECRET should be different for open source and premium versions!
 ENV	INSTALL_LANGUAGE=en \
 	SHARED_SECRET=changeme-C3z9vi54 \
 	DOWNLOAD_CREDENTIALS= \
-	HMDM_URL=https://h-mdm.com/files/hmdm-${WEB_PANEL_VER}-${HMDM_VARIANT}.war \
+	HMDM_URL=${HMDM_URL} \
 	CLIENT_VERSION=${CLIENT_VERSION} \
 	SQL_HOST=localhost \
 	SQL_PORT=5432 \
@@ -55,6 +44,12 @@ ENV	INSTALL_LANGUAGE=en \
 # Set to 1 to force updating the config files
 # If not set, they will be created only if there's no files
 	# FORCE_RECONFIGURE=true
+
+RUN apt-get update -y && apt-get upgrade -y \
+	&& apt-get install -y --no-install-recommends aapt wget sed postgresql-client \
+	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
+    && mkdir -p /usr/local/tomcat/ssl
 
 # 8080, 8443 are hardcoded in hmdm-docker/tomcat_conf/server.xml
 EXPOSE 8080 \

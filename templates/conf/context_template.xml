@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
-    <!-- database configurations -->
+    <!-- database settings -->
     <Parameter name="JDBC.driver"   value="org.postgresql.Driver"/>
     <Parameter name="JDBC.url"      value="jdbc:postgresql://_SQL_HOST_:_SQL_PORT_/_SQL_BASE_"/>
     <Parameter name="JDBC.username" value="_SQL_USER_"/>
@@ -19,38 +19,57 @@
     <Parameter name="base.url" value="_WEB_PROTOCOL_://_BASE_DOMAIN_:8443"/>
 
     <!-- private / shared; shared can be used only in Enterprise solution -->
-    <Parameter name="usage.scenario" value="private" />
+    <Parameter name="usage.scenario" value="_USAGE_SCENARIO_"/>
 
     <!-- If set to 1, the device configuration request must be signed by a shared secret (setup in hash.secret and in the Android app)
          0 or empty value does not require request signature which is less secure -->
     <Parameter name="secure.enrollment" value="_SECURE_ENROLLMENT_"/>
-    <!-- A shared secret between mobile app and control panel.
-         Don't change this unless you know what you're doing -->
     <Parameter name="hash.secret" value="_SHARED_SECRET_"/>
+
     <!-- If set to 1, Strict-Transport-Security (HSTS) is turned on -->
-<!--    <Parameter name="strict.transport.security" value="${strict.transport.security}"/> -->
+    <Parameter name="strict.transport.security" value="_STRICT_TRANSPORT_SECURITY_"/>
+
+    <!-- If set to 1, prevents duplicate device enrollment -->
+    <Parameter name="prevent.duplicate.enrollment" value="_PREVENT_DUPLICATE_ENROLLMENT_"/>
+
+    <!-- If set to 1, the device password is transmitted to the server (less secure) -->
+    <!-- <Parameter name="transmit.password" value="0"/> -->
+
+    <!-- Authentication class override (e.g. Ldap to use LdapAuth). Defaults to LocalAuth -->
+    <!-- <Parameter name="auth.class" value="LocalAuth"/> -->
 
     <!-- Don't change this -->
     <Parameter name="role.orgadmin.id" value="2"/>
 
+    <!-- Launcher package name override (defaults to com.hmdm.launcher) -->
+    <Parameter name="launcher.package" value="_LAUNCHER_PACKAGE_"/>
+
+    <!-- A path to a file to be created by the application initializer to signal on initialization completion -->
+    <Parameter name="initialization.completion.signal.file" value="/usr/local/tomcat/work/"/>
+
     <!-- Configuration for logging plugin, do not change this -->
     <Parameter name="plugin.devicelog.persistence.config.class" value="com.hmdm.plugins.devicelog.persistence.postgres.DeviceLogPostgresPersistenceConfiguration"/>
 
-    <Parameter name="initialization.completion.signal.file" value="/usr/local/tomcat/work/"/>
-
-    <Parameter name="log4j.config" value="file:///usr/local/tomcat/work/log4j-hmdm.xml"/>
-
     <Parameter name="aapt.command" value="aapt"/>
 
-    <!-- MQTT notification service parameters -->
+    <!-- APK trusted URL prefix; only APKs from this URL are allowed for auto-update -->
+    <!-- <Parameter name="apk.trusted.url" value="https://h-mdm.com"/> -->
+
+    <Parameter name="logback.config" value="file:///usr/local/tomcat/work/logback-hmdm.xml"/>
+
+    <Parameter name="plugin.photo.enable.places" value="0"/>
+
+    <!-- If Headwind MDM uses an embedded MQTT broker, this parameter is a
+    local address to which the server binds to listen on port 31000
+    (MQTT for Push notifications), for example, demo.h-mdm.com:31000
+    If an external MQTT server is used, this is the address of this MQTT server
+    -->
     <Parameter name="mqtt.server.uri" value="_MQTT_SERVER_URI_"/>
-    <Parameter name="mqtt.admin.password" value="_MQTT_ADMIN_PASSWORD_"/>
-    <Parameter name="ssl.keystore.password" value="_SSL_KEYSTORE_PASSWORD_"/>
 
     <!-- Fast device search by last characters, here's the length -->
     <Parameter name="device.fast.search.chars" value="5"/>
 
-    <!-- Set to 1 if an external MQTT server must be used (ActiveMQ Classic is recommended) -->
+    <!-- Set to 1 if an external MQTT server must be used (ActiveMQ Artemis is recommended) -->
     <Parameter name="mqtt.external" value="_MQTT_EXTERNAL_"/>
 
     <!-- Optional tag for the MQTT client (required if multiple Tomcat nodes are running) -->
@@ -64,28 +83,15 @@
      to avoid congestion when all devices are updating configuration at the same time -->
     <Parameter name="mqtt.message.delay" value="_MQTT_MSG_DELAY_"/>
 
+    <!-- MQTT admin password for broker authentication -->
+    <Parameter name="mqtt.admin.password" value="_MQTT_ADMIN_PASSWORD_"/>
+
+    <!-- SSL keystore configuration for MQTT broker -->
+    <Parameter name="ssl.keystore.password" value="_SSL_KEYSTORE_PASSWORD_"/>
+    <Parameter name="ssl.keystore.path" value="/usr/local/tomcat/ssl/_BASE_DOMAIN_.jks"/>
+
     <!-- Display X-Forwarded-For instead of source IP -->
-    <!-- <Parameter name="plugin.audit.display.forwarded.ip" value="${plugin.audit.display.forwarded.ip}"/> -->
-
-    <!-- If you have any reverse proxies, specify them here (IP addresses,
-    comma-separated) for correct logging of IP addresses -->
-    <!-- <Parameter name="proxy.addresses" value="192.168.1.101"/> -->
-
-    <!-- Name of the HTTP header containing the device IP address.
-    Defaults to X-Real-IP -->
-    <!-- <Parameter name="proxy.ip.header" value="X-Forwarded-For"/> -->
-
-    <!-- Default value for updates statistics reporting (true/false) -->
-    <Parameter name="updates.send.stats.default" value="_SEND_STATISTICS_"/>
-
-     <!-- Rebranding parameters -->
-    <Parameter name="rebranding.name" value="_REBRANDING_NAME_"/>
-    <Parameter name="rebranding.vendor.name" value="_REBRANDING_VENDOR_NAME_"/>
-    <Parameter name="rebranding.vendor.link" value="_REBRANDING_VENDOR_LINK_"/>
-    <!-- <Parameter name="rebranding.logo" value="_REBRANDING_LOGO_"/> -->
-    <Parameter name="rebranding.mobile.name" value="_REBRANDING_NAME_"/>
-    <Parameter name="rebranding.signup.link" value="_REBRANDING_SIGNUP_LINK_"/>
-    <Parameter name="rebranding.terms.link" value="_REBRANDING_TERMS_LINK_"/>
+    <!-- <Parameter name="plugin.audit.display.forwarded.ip" value="0"/> -->
 
     <!-- Email parameters are necessary for password recovery -->
     <Parameter name="smtp.host" value="_SMTP_HOST_"/>
@@ -96,21 +102,74 @@
     <Parameter name="smtp.from" value="_SMTP_FROM_"/>
     <Parameter name="smtp.password" value="_SMTP_PASSWORD_"/>
     <Parameter name="smtp.ssl.protocols" value="_SMTPSSL_VER_"/>
-
-<!-- These are the customer email templates
-     Email paths may contain _LANGUAGE_ replaced to a two-letter language
-     The default language is en -->
-    <Parameter name="email.recovery.subj" value="/usr/local/tomcat/work/emails/en/recovery_subj.txt"/>
-    <Parameter name="email.recovery.body" value="/usr/local/tomcat/work/emails/en/recovery_body.txt"/>
-
-    <!-- IP filters for devices and web panel UI users, comma-separated networks or single IPs -->
-<!--    <Parameter name="device.allowed.address" value='192.168.0.0/16,10.0.0.0/24'/>
-    <Parameter name="ui.allowed.address" value='192.168.0.0/16,10.0.0.0/24,213.11.0.3'/> -->
+    <!-- Uncomment if you get 'Could not convert socket to TLS' -->
+    <!-- <Parameter name="smtp.ssl.trust" value="*"/> -->
 
     <Parameter name="sql.init.script.path" value="/usr/local/tomcat/work/init.sql"/>
+
+    <!-- If you have any reverse proxies, specify them here (IP addresses,
+    comma-separated) for correct logging of IP addresses -->
+    <!-- <Parameter name="proxy.addresses" value="192.168.1.101"/> -->
+
+    <!-- Name of the HTTP header containing the device IP address.
+    Defaults to X-Real-IP -->
+    <!-- <Parameter name="proxy.ip.header" value="X-Forwarded-For"/> -->
+
+    <!-- Restrict device API access to specific IP addresses or ranges (comma-separated) -->
+    <!-- <Parameter name="device.allowed.address" value="_DEVICE_ALLOWED_ADDRESS_"/> -->
+
+    <!-- Restrict web UI access to specific IP addresses or ranges (comma-separated) -->
+    <!-- <Parameter name="ui.allowed.address" value="_UI_ALLOWED_ADDRESS_"/> -->
 
     <!-- JWT parameters are allow you to customise secret and validity token -->
     <Parameter name="jwt.secretkey" value="_JWT_SECRETKEY_"/>
     <Parameter name="jwt.validity" value="_JWT_VALIDITY_"/>
     <Parameter name="jwt.validityrememberme" value="_JWT_VALIDITYREMEMBERME_"/>
+
+    <!-- Set to 1 to allow sending anonymous usage statistics on updates.
+         Defaults to 0 (disabled). The UI checkbox also requires this to be enabled. -->
+    <Parameter name="send.stats" value="_SEND_STATISTICS_"/>
+
+    <!-- Email templates for self-signup flow -->
+    <Parameter name="email.recovery.subj" value="/usr/local/tomcat/work/emails/en/recovery_subj.txt"/>
+    <Parameter name="email.recovery.body" value="/usr/local/tomcat/work/emails/en/recovery_body.txt"/>
+    <!-- <Parameter name="email.signup.subj" value=""/> -->
+    <!-- <Parameter name="email.signup.body" value=""/> -->
+    <!-- <Parameter name="email.signup.complete.subj" value=""/> -->
+    <!-- <Parameter name="email.signup.complete.body" value=""/> -->
+
+    <!-- Customer self-signup (Enterprise only) -->
+    <!-- <Parameter name="customer.signup" value="0"/> -->
+    <!-- <Parameter name="customer.signup.copy.settings" value="0"/> -->
+    <!-- <Parameter name="customer.signup.configurations" value=""/> -->
+    <!-- <Parameter name="customer.signup.support.email" value=""/> -->
+    <!-- <Parameter name="customer.signup.device.limit" value="0"/> -->
+    <!-- <Parameter name="customer.signup.size.limit" value="0"/> -->
+    <!-- <Parameter name="customer.signup.expiry.days" value="0"/> -->
+    <!-- <Parameter name="customer.signup.device.config" value=""/> -->
+    <!-- <Parameter name="customer.auto.status" value="0"/> -->
+    <!-- <Parameter name="admin.email" value=""/> -->
+    <!-- <Parameter name="mailchimp.url" value=""/> -->
+    <!-- <Parameter name="mailchimp.key" value=""/> -->
+
+    <!-- Rebranding (Enterprise only) -->
+    <!-- <Parameter name="rebranding.name" value="_REBRANDING_NAME_"/> -->
+    <!-- <Parameter name="rebranding.vendor.name" value="_REBRANDING_VENDOR_NAME_"/> -->
+    <!-- <Parameter name="rebranding.vendor.link" value="_REBRANDING_VENDOR_LINK_"/> -->
+    <!-- <Parameter name="rebranding.logo" value=""/> -->
+    <!-- <Parameter name="rebranding.mobile.name" value="_REBRANDING_NAME_"/> -->
+    <!-- <Parameter name="rebranding.signup.link" value="_REBRANDING_SIGNUP_LINK_"/> -->
+    <!-- <Parameter name="rebranding.terms.link" value="_REBRANDING_TERMS_LINK_"/> -->
+
+    <!-- LDAP authentication (requires auth.class=Ldap above) -->
+    <!-- <Parameter name="ldap.admin.bind" value=""/> -->
+    <!-- <Parameter name="ldap.host" value=""/> -->
+    <!-- <Parameter name="ldap.port" value="389"/> -->
+    <!-- <Parameter name="ldap.base.dn" value=""/> -->
+    <!-- <Parameter name="ldap.admin.dn" value=""/> -->
+    <!-- <Parameter name="ldap.admin.password" value=""/> -->
+    <!-- <Parameter name="ldap.username.attribute" value="uid"/> -->
+    <!-- <Parameter name="ldap.user.dn" value=""/> -->
+    <!-- <Parameter name="ldap.default.role" value=""/> -->
+    <!-- <Parameter name="ldap.customer.id" value=""/> -->
 </Context>
