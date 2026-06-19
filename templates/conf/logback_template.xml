@@ -30,7 +30,8 @@
     <appender name="MAIN_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/usr/local/tomcat/work/logs/hmdm.log</file>
         <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss,SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <timeZone>UTC</timeZone>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/usr/local/tomcat/work/logs/hmdm.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -42,7 +43,8 @@
     <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/usr/local/tomcat/work/logs/audit.log</file>
         <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss,SSS} %-5level  %msg%n</pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level  %msg%n</pattern>
+            <timeZone>UTC</timeZone>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/usr/local/tomcat/work/logs/audit.%d{yyyy-MM-dd}.log</fileNamePattern>

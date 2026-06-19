@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM tomcat:11-jdk21-temurin-noble
 
-ARG CLIENT_VERSION=6.29 \
-	HMDM_URL=https://h-mdm.com/files/hmdm-5.38.1-os.war
+ARG CLIENT_VERSION=6.36 \
+	HMDM_URL=https://h-mdm.com/files/hmdm-java21-5.39.2.1-os.war
 
 # Available values of INSTALL_LANGUAGE: en, ru (en by default)
 # value of SHARED_SECRET should be different for open source and premium versions!
@@ -38,26 +38,24 @@ ENV	INSTALL_LANGUAGE=en \
 	HTTPS_PRIVKEY=privkey.pem \
 	MQTT_PORT=31000 \
 	MQTT_SERVER_URI=tcp://0.0.0.0 \
-	MQTT_ADMIN_PASSWORD=dd3V5YDkrX \
-	SSL_KEYSTORE_PASSWORD=K8tWyHFTwQtCF8Fp
+	MQTT_ADMIN_PASSWORD=dd3V5YDkrX
 
 # Set to 1 to force updating the config files
 # If not set, they will be created only if there's no files
 	# FORCE_RECONFIGURE=true
-
-RUN apt-get update -y && apt-get upgrade -y \
-	&& apt-get install -y --no-install-recommends aapt wget sed postgresql-client \
-	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost \
-    && mkdir -p /usr/local/tomcat/ssl
 
 # 8080, 8443 are hardcoded in hmdm-docker/tomcat_conf/server.xml
 EXPOSE 8080 \
 	   8443 \
 	   31000
 
-COPY docker-entrypoint.sh /
-COPY update-web-app-docker.sh /opt/hmdm/
+RUN apt-get update -y && apt-get upgrade -y \
+	&& apt-get install -y --no-install-recommends aapt wget sed postgresql-client \
+	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost
+
+ADD docker-entrypoint.sh /
+ADD update-web-app-docker.sh /opt/hmdm/
 ADD templates /opt/hmdm/templates/
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

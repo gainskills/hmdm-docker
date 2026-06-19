@@ -86,9 +86,11 @@
     <!-- MQTT admin password for broker authentication -->
     <Parameter name="mqtt.admin.password" value="_MQTT_ADMIN_PASSWORD_"/>
 
-    <!-- SSL keystore configuration for MQTT broker -->
-    <Parameter name="ssl.keystore.password" value="_SSL_KEYSTORE_PASSWORD_"/>
-    <Parameter name="ssl.keystore.path" value="/usr/local/tomcat/ssl/_BASE_DOMAIN_.jks"/>
+    <!-- MQTT TLS via certbot PEM files (preferred; enables in-process auto-reload).
+         fullchain.pem is used as the cert. Set BOTH or neither. -->
+    <Parameter name="ssl.pem.key.path" value="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_PRIVKEY_"/>
+    <Parameter name="ssl.pem.cert.path" value="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_FULLCHAIN_"/>
+    <!-- <Parameter name="ssl.pem.config.path" value=""/>  optional; defaults to a writable temp path -->
 
     <!-- Display X-Forwarded-For instead of source IP -->
     <!-- <Parameter name="plugin.audit.display.forwarded.ip" value="0"/> -->

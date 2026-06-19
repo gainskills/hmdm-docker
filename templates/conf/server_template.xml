@@ -30,6 +30,11 @@
   <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
   <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
   <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+  <!-- Automatically reloads the TLS configuration of the HTTPS connector a set
+       number of days (default 14) before the loaded certificate expires, so a
+       renewed certificate (replaced on disk by certbot or an external process)
+       is picked up without restarting Tomcat. Checks every 24h by default. -->
+  <Listener className="org.apache.catalina.security.TLSCertificateReloadListener" />
 
   <!-- Global JNDI resources
        Documentation at /docs/jndi-resources-howto.html
@@ -96,9 +101,12 @@
           SSLEnabled="true">
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig>
-		<Certificate certificateKeystoreFile="/usr/local/tomcat/ssl/_BASE_DOMAIN_.jks"
-			certificateKeystorePassword="_SSL_KEYSTORE_PASSWORD_"
-                         type="EC" />
+            <!-- PEM files are read directly so the TLSCertificateReloadListener
+                 can reload a renewed certificate without a restart. The key type
+                 (RSA/EC) is auto-detected. -->
+            <Certificate certificateKeyFile="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_PRIVKEY_"
+                         certificateFile="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_CERT_"
+                         certificateChainFile="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_FULLCHAIN_" />
         </SSLHostConfig>
     </Connector>
     <!-- Define an SSL/TLS HTTP/1.1 Connector on port 8443 with HTTP/2
