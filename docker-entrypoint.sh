@@ -75,10 +75,16 @@ SMTP_STARTTLS="${SMTP_STARTTLS:-0}"
 SMTPSSL_VER="${SMTPSSL_VER:-TLSv1.2}"
 MQTT_SERVER_URI=${MQTT_SERVER_URI:-tcp://0.0.0.0:${MQTT_PORT:-31000}}
 MQTT_ADMIN_PASSWORD=${MQTT_ADMIN_PASSWORD:-dd3V5YDkrX}
-SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-K8tWyHFTwQtCF8Fp}
 MQTT_MSG_DELAY="${MQTT_MSG_DELAY:-100}"
 MQTT_CLIENT_TAG="${MQTT_CLIENT_TAG:-hmdm}"
 MQTT_EXTERNAL="${MQTT_EXTERNAL:-0}"
+
+# When serving HTTPS with the embedded broker, run MQTT over TLS too (ssl:// scheme).
+# The broker reads its certificate from the PEM paths in context.xml (ssl.pem.*) and
+# reloads it in-process. Preserve host:port; leave external-broker URIs untouched.
+if [ "$MQTT_EXTERNAL" != "1" ] && [ "$PROTOCOL" = "https" ]; then
+    MQTT_SERVER_URI="ssl://$(echo "$MQTT_SERVER_URI" | sed -E 's#^[a-z+]+://##')"
+fi
 SEND_STATISTICS="${SEND_STATISTICS:-0}"
 HMDM_VARIANT="${HMDM_VARIANT:-os}"
 JWT_SECRETKEY="${JWT_SECRETKEY:-20c68f0d9185b1d18cf6add1e8b491fd89529a44}"
@@ -109,7 +115,8 @@ if [ ! -f "$TOMCAT_DIR/conf/Catalina/localhost/ROOT.xml" ] || [ "$FORCE_RECONFIG
         -e "s${DELIM}_SHARED_SECRET_${DELIM}$SHARED_SECRET${DELIM}g" \
         -e "s${DELIM}_MQTT_SERVER_URI_${DELIM}$MQTT_SERVER_URI${DELIM}g" \
         -e "s${DELIM}_MQTT_ADMIN_PASSWORD_${DELIM}$MQTT_ADMIN_PASSWORD${DELIM}g" \
-        -e "s${DELIM}_SSL_KEYSTORE_PASSWORD_${DELIM}$SSL_KEYSTORE_PASSWORD${DELIM}g" \
+        -e "s${DELIM}_HTTPS_PRIVKEY_${DELIM}$HTTPS_PRIVKEY${DELIM}g" \
+        -e "s${DELIM}_HTTPS_FULLCHAIN_${DELIM}$HTTPS_FULLCHAIN${DELIM}g" \
         -e "s${DELIM}_SMTP_HOST_${DELIM}$SMTP_HOST${DELIM}g" \
         -e "s${DELIM}_SMTP_PORT_${DELIM}$SMTP_PORT${DELIM}g" \
         -e "s${DELIM}_SMTP_SSL_${DELIM}$SMTP_SSL${DELIM}g" \
@@ -197,10 +204,9 @@ if [ -n "$FILES_TO_DOWNLOAD" ]; then
     )
 fi
 
-# jks is always created from the certificates
+# HTTPS uses certbot PEM files directly (Tomcat connector + MQTT broker over TLS).
+# Validate the files are present so a misconfiguration fails fast and clearly.
 if [ "$PROTOCOL" = "https" ]; then
-    # Ensure SSL directory exists
-    mkdir -p "$TOMCAT_DIR/ssl"
     HTTPS_CERT_PATH="/etc/letsencrypt/live/$BASE_DOMAIN"
     if [ "$HTTPS_LETSENCRYPT" = "true" ]; then
         echo "Looking for SSL keys in $HTTPS_CERT_PATH..."
@@ -210,32 +216,19 @@ if [ "$PROTOCOL" = "https" ]; then
             sleep 5
         done
     fi
-    # Ensure variables are set before using them, or handle errors
-    if [ -z "$HTTPS_CERT_PATH" ] || [ -z "$HTTPS_PRIVKEY" ] || [ -z "$HTTPS_CERT" ] || [ -z "$HTTPS_FULLCHAIN" ]; then
-        echo "Error: One or more HTTPS certificate path variables are not set."
-        exit 1
-    else
-        openssl pkcs12 -export -out "$TOMCAT_DIR/ssl/$BASE_DOMAIN.p12" \
-            -inkey "$HTTPS_CERT_PATH/$HTTPS_PRIVKEY" \
-            -in "$HTTPS_CERT_PATH/$HTTPS_CERT" \
-            -certfile "$HTTPS_CERT_PATH/$HTTPS_FULLCHAIN" \
-            -password "pass:$SSL_KEYSTORE_PASSWORD"
-        keytool -importkeystore \
-            -destkeystore "$TOMCAT_DIR/ssl/$BASE_DOMAIN.jks" \
-            -srckeystore "$TOMCAT_DIR/ssl/$BASE_DOMAIN.p12" -srcstoretype PKCS12 \
-            -srcstorepass "$SSL_KEYSTORE_PASSWORD" \
-            -deststorepass "$SSL_KEYSTORE_PASSWORD" -noprompt
-
-        if [ ! -f "$TOMCAT_DIR/ssl/$BASE_DOMAIN.jks" ]; then
-            echo "Error: Failed to create $TOMCAT_DIR/ssl/$BASE_DOMAIN.jks"
+    for CERT_FILE in "$HTTPS_PRIVKEY" "$HTTPS_CERT" "$HTTPS_FULLCHAIN"; do
+        if [ ! -f "$HTTPS_CERT_PATH/$CERT_FILE" ]; then
+            echo "Error: certificate file $HTTPS_CERT_PATH/$CERT_FILE not found"
             exit 1
         fi
-    fi
+    done
 fi
 
 sed \
     -e "s#_BASE_DOMAIN_#$BASE_DOMAIN#g" \
-    -e "s#_SSL_KEYSTORE_PASSWORD_#$SSL_KEYSTORE_PASSWORD#g" \
+    -e "s#_HTTPS_PRIVKEY_#$HTTPS_PRIVKEY#g" \
+    -e "s#_HTTPS_CERT_#$HTTPS_CERT#g" \
+    -e "s#_HTTPS_FULLCHAIN_#$HTTPS_FULLCHAIN#g" \
     "$TEMPLATE_DIR/conf/server_template.xml" > "$TOMCAT_DIR/conf/server.xml"
 
 # Waiting for the database

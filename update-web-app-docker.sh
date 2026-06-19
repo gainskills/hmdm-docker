@@ -4,9 +4,7 @@
 set -e
 
 TOMCAT_HOME=/usr/local/tomcat
-# TOMCAT_SERVICE=$(echo "$TOMCAT_HOME" | awk '{n=split($1,A,"/"); print A[n]}') # Original
 TOMCAT_SERVICE=$(basename "$TOMCAT_HOME") # Simplified
-TOMCAT_USER=$(ls -ld "$TOMCAT_HOME/webapps" | awk '{print $3}')
 FILES_DIRECTORY="$TOMCAT_HOME/work/files"
 WAR_FILE="$TOMCAT_HOME/webapps/ROOT.war"
 MANIFEST_FILE="$FILES_DIRECTORY/hmdm_web_update_manifest.txt"

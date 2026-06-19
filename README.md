@@ -1,6 +1,6 @@
 # Docker image for Headwind MDM
 
-Headwind MDM is an open source mobile device management software for Android 
+Headwind MDM is an open source mobile device management software for Android
 devices. It has been originally designed for Ubuntu Linux. This image helps
 to run Headwind MDM on any Linux.
 
@@ -17,13 +17,13 @@ The image is based on Ubuntu 24.04 and Tomcat 9.
 It doesn't include PostgreSQL and certbot, so they need to be started in
 separate containers or on the host machine.
 
-As an alternative, you can use docker-compose to run Headwind MDM and all 
-required packages (certbot, PostgreSQL) on a fresh virtual machine with the 
+As an alternative, you can use docker-compose to run Headwind MDM and all
+required packages (certbot, PostgreSQL) on a fresh virtual machine with the
 most common options (see below).
 
 ## Building the image from the source code
 
-Before building the image, review the default variables (in particular the 
+Before building the image, review the default variables (in particular the
 Headwind MDM URL) in the Dockerfile and change them if required.
 
 The build command is:
@@ -42,7 +42,7 @@ SQL_PASS=topsecret
 2. If you want to use HTTPS, install certbot and generate the certificate for
 the domain where Headwind MDM should be installed.
 
-    certbot certonly --standalone --force-renewal -d your-mdm-domain.com 
+    certbot certonly --standalone --force-renewal -d your-mdm-domain.com
 
 ## Running the Docker container
 
@@ -54,8 +54,8 @@ To create the container, use the command:
 
     docker run -d -p 443:8443 -p 31000:31000 -e SQL_HOST=database.host -e SQL_BASE=hmdm -e SQL_USER=hmdm -e SQL_PASS=password -e BASE_DOMAIN=build.h-mdm.com -v /etc/letsencrypt:/etc/letsencrypt -v $(pwd)/volumes/work:/usr/local/tomcat/work --name="hmdm" headwindmdm/hmdm:0.1.5
 
-If everything is fine, Headwind MDM will become available via the url 
-`https://your-mdm-domain.com` in a few seconds. 
+If everything is fine, Headwind MDM will become available via the url
+`https://your-mdm-domain.com` in a few seconds.
 
 To view logs, use the command:
 
@@ -82,7 +82,6 @@ At first start, Headwind MDM performs the initialization:
 
   - Creates the config files using the environment
   - Initializes the database
-  - Converts the LetsEncrypt's (or your own) SSL certificates to a JKS keystore
 
 Subsequent starts of the container skip this step, but you can force the
 configuration renewal by setting the following environment variable:
@@ -90,16 +89,16 @@ configuration renewal by setting the following environment variable:
 FORCE_RECONFIGURE=true
 
 When this variable is set to true, the configuration is always re-created by the
-Headwind MDM entry point script. 
+Headwind MDM entry point script.
 
 <a id="quickstart"></a>
 ## Running with the most common options by Docker Compose
 
-Docker-Compose requires just two files to start Headwind MDM: 
+Docker-Compose requires just two files to start Headwind MDM:
     .env
     docker-compose.yaml
 
-For a simple start of Headwind MDM on a fresh virtual machine, run the 
+For a simple start of Headwind MDM on a fresh virtual machine, run the
 following commands.
 
     apt install -y docker-compose
@@ -108,7 +107,7 @@ following commands.
     vim .env              # Replace ADMIN_EMAIL and BASE_DOMAIN to your values
     docker-compose up
 
-The command `docker-compose up` will start Headwind MDM in the interactive 
+The command `docker-compose up` will start Headwind MDM in the interactive
 mode where you can easily trace and fix errors.
 
 Once Headwind MDM start is successful, you can start it in the background
@@ -153,18 +152,18 @@ Notice: the container needs to be started before attaching to it.
 
 ## Resetting the container
 
-If something goes wrong, you may wish to reset the container and reinstall it 
-from scratch. The command 
+If something goes wrong, you may wish to reset the container and reinstall it
+from scratch. The command
 
     docker-compose down
-    
-may not be enough, as it doesn't clear the downloaded files and initialized 
+
+may not be enough, as it doesn't clear the downloaded files and initialized
 database.
 
 To wipe all data, remove all entries in the `volumes` subdirectory:
 
     rm -rf volumes/db volumes/work
-    
+
 (we recommend to keep the `volumes/letsencrypt` subdirectory to avoid problems
 with exceeding the LetsEncrypt certificate generation threshold).
 
@@ -175,16 +174,16 @@ There is also an interactive script removing the data:
 As an alternative, you can set the parameter in the .env file:
 
     FORCE_RECONFIGURE=true
-    
+
 Important: this parameter should be unset after the initial setup, otherwise
 you may lose the application settings.
 
 ## Configuring Headwind MDM
 
-The Headwind MDM config file is mapped to `volumes/hmdm-config/ROOT.xml`. 
+The Headwind MDM config file is mapped to `volumes/hmdm-config/ROOT.xml`.
 
-Restarting the container applies the changes. To avoid loss of changes, make sure 
-the `FORCE_RECONFIGURE` flag is not set in the `.env` file (this flag forces 
+Restarting the container applies the changes. To avoid loss of changes, make sure
+the `FORCE_RECONFIGURE` flag is not set in the `.env` file (this flag forces
 the container to reset the XML config file to its default state).
 
 ## Using custom SSL certificates in Docker Compose
