@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Read(//tmp/**)",
+      "Bash(curl -sS --max-time 30 -A \"Mozilla/5.0\" https://tomcat.apache.org/tomcat-11.0-doc/config/http.html -o tc_http.html)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(wc -c tc_http.html)",
+      "Bash(curl -sS --max-time 30 -A \"Mozilla/5.0\" https://tomcat.apache.org/tomcat-11.0-doc/config/http2.html -o tc_http2.html)",
+      "Bash(echo \"http2 exit=$?\")",
+      "Bash(curl -sS --max-time 30 -A \"Mozilla/5.0\" \"https://tomcat.apache.org/tomcat-11.0-doc/config/index.html\" -o tc_index.html)",
+      "Bash(echo \"index exit=$?\")",
+      "Bash(curl -sS --max-time 40 -A \"Mozilla/5.0\" https://tomcat.apache.org/tomcat-11.0-doc/changelog.html -o tc_changelog.html)",
+      "Bash(curl -sS --max-time 30 -A \"Mozilla/5.0\" https://tomcat.apache.org/tomcat-11.0-doc/config/sslhostconfig.html -o tc_sslhost.html)",
+      "Bash(echo \"sslhost exit=$? size=$\\(wc -c < tc_sslhost.html\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sS --max-time 30 -A \"Mozilla/5.0\" https://tomcat.apache.org/tomcat-11.0-doc/config/listeners.html -o tc_listeners.html)",
+      "Bash(echo \"listeners exit=$? size=$\\(wc -c < tc_listeners.html\\)\")",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(gh search *)",
+      "Bash(curl -sS --max-time 25 https://raw.githubusercontent.com/h-mdm/hmdm-server/master/notification/pom.xml)",
+      "Bash(grep -iA2 \"artifactId\\\\|groupId\")",
+      "Bash(gh api *)",
+      "Bash(curl -sS --max-time 25 https://raw.githubusercontent.com/h-mdm/hmdm-server/master/pom.xml)",
+      "Bash(curl -sS --max-time 25 \"https://raw.githubusercontent.com/h-mdm/hmdm-server/master/notification/src/main/java/com/hmdm/notification/guice/module/NotificationMqttConfigModule.java\" -o cfg.java)",
+      "Bash(curl -sS --max-time 25 \"https://raw.githubusercontent.com/h-mdm/hmdm-server/master/notification/src/main/java/com/hmdm/notification/guice/module/NotificationMqttTaskModule.java\" -o task.java)",
+      "Bash(sed -n '236,242p' docker-entrypoint.sh)",
+      "Bash(sh -n docker-entrypoint.sh)",
+      "Bash(xmllint --noout templates/conf/server_template.xml)",
+      "Bash(BASE_DOMAIN=mdm.example.com HTTPS_PRIVKEY=privkey.pem HTTPS_CERT=cert.pem HTTPS_FULLCHAIN=fullchain.pem sed -e 's#_BASE_DOMAIN_#mdm.example.com#g' -e 's#_HTTPS_PRIVKEY_#privkey.pem#g' -e 's#_HTTPS_CERT_#cert.pem#g' -e 's#_HTTPS_FULLCHAIN_#fullchain.pem#g' templates/conf/server_template.xml)",
+      "Bash(python3 -c \"import xml.dom.minidom,sys; xml.dom.minidom.parse\\('/tmp/server_rendered.xml'\\); print\\('rendered server.xml is well-formed'\\)\")",
+      "Bash(gh repo *)",
+      "Bash(sed -e 's#_BASE_DOMAIN_#mdm.example.com#g' -e 's#_HTTPS_PRIVKEY_#privkey.pem#g' -e 's#_HTTPS_FULLCHAIN_#fullchain.pem#g' templates/conf/context_template.xml)",
+      "Bash(python3 -c \"import xml.dom.minidom; xml.dom.minidom.parse\\('/tmp/ctx_rendered.xml'\\); print\\('rendered context ROOT.xml is well-formed'\\)\")",
+      "Bash(rm -f /tmp/ctx_rendered.xml)",
+      "Bash(python3 -c \"import xml.dom.minidom; xml.dom.minidom.parse\\('/tmp/ctx2.xml'\\); print\\('rendered ROOT.xml well-formed'\\)\")",
+      "Bash(rm -f /tmp/ctx2.xml)",
+      "Bash(python3 -c \"import xml.dom.minidom; xml.dom.minidom.parse\\('templates/conf/context_template.xml'\\); print\\('context_template.xml well-formed'\\)\")",
+      "Bash(python3 -c \"import xml.dom.minidom; xml.dom.minidom.parse\\('templates/conf/server_template.xml'\\); print\\('server_template.xml well-formed'\\)\")"
+    ]
+  }
+}

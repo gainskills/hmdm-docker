@@ -13,26 +13,59 @@ services:
   # 3. Set the environment variable in the .env file: PROTOCOL=http
   #
   certbot:
-    image: certbot/certbot:v1.4.0
+    image: certbot/certbot:v5.8.0
+    restart: unless-stopped
     volumes:
       - ./volumes/letsencrypt:/etc/letsencrypt
+      - ./volumes/mqtt:/var/lib/hmdm/mqtt
     ports:
       - 80:80
-    entrypoint: "certbot certonly --non-interactive --agree-tos -m ${ADMIN_EMAIL} --standalone -d ${BASE_DOMAIN}"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        trap exit TERM INT
+        write_mqtt_pemcfg() {
+          mkdir -p /var/lib/hmdm/mqtt
+          tmp="/var/lib/hmdm/mqtt/.mqtt-broker.pemcfg.tmp"
+          printf 'source.key=/etc/letsencrypt/live/%s/privkey.pem\nsource.cert=/etc/letsencrypt/live/%s/fullchain.pem\n' \
+            "${BASE_DOMAIN}" "${BASE_DOMAIN}" > "$$tmp"
+          mv -f "$$tmp" /var/lib/hmdm/mqtt/mqtt-broker.pemcfg
+        }
+        until certbot certonly --non-interactive --agree-tos --keep-until-expiring -m "${ADMIN_EMAIL}" --standalone -d "${BASE_DOMAIN}"; do
+          echo "Certificate issuance failed; retrying in 5 minutes"
+          sleep 5m & wait $$!
+        done
+        write_mqtt_pemcfg
+        while :; do
+          sleep 12h & wait $$!
+          if certbot renew --quiet; then
+            write_mqtt_pemcfg
+          else
+            echo "Certificate renewal failed; retrying in 12 hours" >&2
+          fi
+        done
 
   postgresql:
-    image: postgres:12-alpine
-    ports:
-      - 5432:5432
+    # Existing deployments without POSTGRES_IMAGE remain on 12 so their data
+    # directory is not opened by an incompatible major version.
+    image: ${POSTGRES_IMAGE:-postgres:12-alpine}
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${SQL_USER}
       POSTGRES_PASSWORD: ${SQL_PASS}
       POSTGRES_DB: ${SQL_BASE}
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SQL_USER} -d ${SQL_BASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   hmdm:
     image: headwindmdm/hmdm:0.1.7
+    restart: unless-stopped
     ports:
       # Uncomment this port forwarding if you want to use plain HTTP instead of HTTPS
       #- 80:8080
@@ -43,36 +76,43 @@ services:
     #  - "${BASE_DOMAIN}:127.0.0.1"
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
-      - ./volumes/letsencrypt:/etc/letsencrypt
+      - ./volumes/letsencrypt:/etc/letsencrypt:ro
+      - ./volumes/mqtt:/var/lib/hmdm/mqtt
       - ./volumes/hmdm-config:/usr/local/tomcat/conf/Catalina/localhost
+    depends_on:
+      postgresql:
+        condition: service_healthy
     environment:
       SQL_HOST: postgresql
       SQL_USER: ${SQL_USER}
       SQL_BASE: ${SQL_BASE}
       SQL_PASS: ${SQL_PASS}
       BASE_DOMAIN: ${BASE_DOMAIN}
-      LOCAL_IP: ${LOCAL_IP}
+      LOCAL_IP: ${LOCAL_IP:-}
       PROTOCOL: ${PROTOCOL}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      HTTPS_CERT_PATH: ${HTTPS_CERT_PATH:-}
+      HTTPS_LETSENCRYPT: ${HTTPS_LETSENCRYPT:-true}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
-      SHARED_SECRET: ${SHARED_SECRET}
+      SHARED_SECRET: ${SHARED_SECRET:?Set SHARED_SECRET in .env}
       HMDM_VARIANT: ${HMDM_VARIANT}
       DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS}
       HMDM_URL: ${HMDM_URL}
+      HMDM_WAR_SHA256: ${HMDM_WAR_SHA256:-}
+      FORCE_WAR_UPDATE: ${FORCE_WAR_UPDATE:-false}
       SECURE_ENROLLMENT: ${SECURE_ENROLLMENT}
       CLIENT_VERSION: ${CLIENT_VERSION}
-      FORCE_RECONFIGURE: ${FORCE_RECONFIGURE}
-      PROTOCOL: ${PROTOCOL}
+      FORCE_RECONFIGURE: ${FORCE_RECONFIGURE:-}
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_SSL: ${SMTP_SSL}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SSL: ${SMTP_SSL:-0}
       SMTP_STARTTLS: ${SMTP_STARTTLS}
       SMTP_USERNAME: ${SMTP_USERNAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM: ${SMTP_FROM:-${SMTP_USERNAME}}
       MQTT_PORT: ${MQTT_PORT}
       MQTT_SERVER_URI: ${MQTT_SERVER_URI}
       MQTT_ADMIN_PASSWORD: ${MQTT_ADMIN_PASSWORD}
       JWT_SECRETKEY: ${JWT_SECRETKEY}
       JWT_VALIDITY: ${JWT_VALIDITY}
       JWT_VALIDITYREMEMBERME: ${JWT_VALIDITYREMEMBERME}
-

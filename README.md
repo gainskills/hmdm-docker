@@ -12,7 +12,7 @@ For a quick start, proceed directly to the ["Running with the most common option
 
 ## Summary
 
-The image is based on Ubuntu 24.04 and Tomcat 9.
+The image is based on Ubuntu 24.04, Tomcat 10.1, and Java 21.
 
 It doesn't include PostgreSQL and certbot, so they need to be started in
 separate containers or on the host machine.
@@ -28,7 +28,13 @@ Headwind MDM URL) in the Dockerfile and change them if required.
 
 The build command is:
 
-    docker build -t headwindmdm/hmdm:0.1.6 .
+    docker build -t headwindmdm/hmdm:0.1.7 .
+
+To test another WAR without rebuilding the image, set `HMDM_URL` in `.env` and
+set `FORCE_WAR_UPDATE=true` for one container start. Set it back to `false`
+after the WAR has been installed. Prefer a versioned URL and set
+`HMDM_WAR_SHA256`; the download cache includes the complete URL so two URLs
+with the same filename cannot collide.
 
 ## Prerequisites
 
@@ -52,7 +58,7 @@ the domain where Headwind MDM should be installed.
 
 To create the container, use the command:
 
-    docker run -d -p 443:8443 -p 31000:31000 -e SQL_HOST=database.host -e SQL_BASE=hmdm -e SQL_USER=hmdm -e SQL_PASS=password -e BASE_DOMAIN=build.h-mdm.com -v /etc/letsencrypt:/etc/letsencrypt -v $(pwd)/volumes/work:/usr/local/tomcat/work --name="hmdm" headwindmdm/hmdm:0.1.5
+    docker run -d -p 443:8443 -p 31000:31000 -e SQL_HOST=database.host -e SQL_BASE=hmdm -e SQL_USER=hmdm -e SQL_PASS=password -e BASE_DOMAIN=build.h-mdm.com -v /etc/letsencrypt:/etc/letsencrypt:ro -v $(pwd)/volumes/work:/usr/local/tomcat/work --name="hmdm" headwindmdm/hmdm:0.1.7
 
 If everything is fine, Headwind MDM will become available via the url
 `https://your-mdm-domain.com` in a few seconds.
@@ -140,7 +146,7 @@ To find the container ID, use the command
 
     docker ps
 
-Find the container ID of the image headwindmdm/hmdm:0.1.5, then run the command
+Find the container ID of the image headwindmdm/hmdm:0.1.7, then run the command
 
     docker exec -it containerid /bin/bash
 
@@ -195,6 +201,11 @@ To use custom SSL certificates
 - Copy the private key, certificate, and full certificate chain
 - in the PEM (base64) format to that subdirectory. Use the following names:
 - cert.pem, fullchain.pem, privkey.pem
+- Set `HTTPS_LETSENCRYPT=false` in `.env`
+
+If the files are mounted somewhere else inside the HMDM container, set
+`HTTPS_CERT_PATH` to that container path. The certificate mount should be
+read-only in the HMDM container.
 
 To use plain HTTP, edit the contents of the docker-compose.yaml:
 
@@ -202,3 +213,18 @@ To use plain HTTP, edit the contents of the docker-compose.yaml:
 - Uncomment the port 80 forwarding
 - Set the environment variable in the .env file: PROTOCOL=http
 
+## Certificate renewal
+
+The Compose Certbot service stays running and checks for renewal every 12 hours.
+Tomcat reads the renewed PEM files directly. The Certbot service also rewrites
+the shared Artemis PEM configuration after a successful renewal, which triggers
+the embedded MQTT broker to reload without converting the certificate to a Java
+keystore.
+
+## PostgreSQL major versions
+
+New installations use the supported PostgreSQL image selected by
+`POSTGRES_IMAGE` in `.env`. Existing installations that do not define this
+variable remain on PostgreSQL 12 to avoid trying to open an old data directory
+with a newer major version. Upgrade existing databases by dump/restore (or
+`pg_upgrade`) first, then set `POSTGRES_IMAGE` to the new major version.

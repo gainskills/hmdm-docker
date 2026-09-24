@@ -1,14 +1,16 @@
 # syntax=docker/dockerfile:1
-FROM tomcat:11-jdk21-temurin-noble
+FROM tomcat:10.1-jdk21-temurin-noble
 
 ARG CLIENT_VERSION=6.36 \
-	HMDM_URL=https://h-mdm.com/files/hmdm-java21-5.39.2.1-os.war
+	HMDM_URL=https://h-mdm.com/files/hmdm-java21-5.39.2-os.war
 
 # Available values of INSTALL_LANGUAGE: en, ru (en by default)
 # value of SHARED_SECRET should be different for open source and premium versions!
 ENV	INSTALL_LANGUAGE=en \
 	SHARED_SECRET=changeme-C3z9vi54 \
 	DOWNLOAD_CREDENTIALS= \
+	HMDM_WAR_SHA256= \
+	FORCE_WAR_UPDATE=false \
 	HMDM_URL=${HMDM_URL} \
 	CLIENT_VERSION=${CLIENT_VERSION} \
 	SQL_HOST=localhost \
@@ -23,21 +25,16 @@ ENV	INSTALL_LANGUAGE=en \
 	SMTP_FROM=cinfo@example.com \
 	SMTP_USERNAME=cinfo@example.com \
 	SMTP_PASSWORD=changeme \
-	SMTP-SSL_VER=TLSv1.2 \
+	SMTPSSL_VER=TLSv1.2 \
 	ADMIN_EMAIL=info@h-mdm.com \
 	PROTOCOL=https \
-	# BASE_DOMAIN=your-domain.com
-	# LOCAL_IP=172.31.91.82 # Set this parameter to your local IP address
-	# Comment following line to use custom certificates
-    HTTPS_LETSENCRYPT=true \
-# Mount the custom certificate path if custom certificates must be used
-# ENV_HTTPS_CERT_PATH is the path to certificates and keys inside the container
-	# HTTPS_CERT_PATH=/cert
+	HTTPS_LETSENCRYPT=true \
+	HTTPS_CERT_PATH= \
 	HTTPS_CERT=cert.pem \
 	HTTPS_FULLCHAIN=fullchain.pem \
 	HTTPS_PRIVKEY=privkey.pem \
 	MQTT_PORT=31000 \
-	MQTT_SERVER_URI=tcp://0.0.0.0 \
+	MQTT_SERVER_URI=tcp://0.0.0.0:31000 \
 	MQTT_ADMIN_PASSWORD=dd3V5YDkrX
 
 # Set to 1 to force updating the config files
@@ -52,10 +49,10 @@ EXPOSE 8080 \
 RUN apt-get update -y && apt-get upgrade -y \
 	&& apt-get install -y --no-install-recommends aapt wget sed postgresql-client \
 	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost /var/lib/hmdm/mqtt
 
-ADD docker-entrypoint.sh /
-ADD update-web-app-docker.sh /opt/hmdm/
-ADD templates /opt/hmdm/templates/
+COPY docker-entrypoint.sh /
+COPY update-web-app-docker.sh /opt/hmdm/
+COPY templates /opt/hmdm/templates/
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
