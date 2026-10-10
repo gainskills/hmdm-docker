@@ -1,0 +1,4 @@
+.env
+volumes/
+.git/
+.claude/
