@@ -16,7 +16,7 @@
     <Parameter name="plugins.files.directory" value="/usr/local/tomcat/work/plugins"/>
 
     <!-- URL used to open Headwind MDM control panel -->
-    <Parameter name="base.url" value="_WEB_PROTOCOL_://_BASE_DOMAIN_:8443"/>
+    <Parameter name="base.url" value="_PUBLIC_BASE_URL_"/>
 
     <!-- private / shared; shared can be used only in Enterprise solution -->
     <Parameter name="usage.scenario" value="_USAGE_SCENARIO_"/>
@@ -45,7 +45,7 @@
     <Parameter name="launcher.package" value="_LAUNCHER_PACKAGE_"/>
 
     <!-- A path to a file to be created by the application initializer to signal on initialization completion -->
-    <Parameter name="initialization.completion.signal.file" value="/usr/local/tomcat/work/"/>
+    <Parameter name="initialization.completion.signal.file" value="/usr/local/tomcat/work/initialized"/>
 
     <!-- Configuration for logging plugin, do not change this -->
     <Parameter name="plugin.devicelog.persistence.config.class" value="com.hmdm.plugins.devicelog.persistence.postgres.DeviceLogPostgresPersistenceConfiguration"/>
@@ -88,9 +88,9 @@
 
     <!-- MQTT TLS via certbot PEM files (preferred; enables in-process auto-reload).
          fullchain.pem is used as the cert. Set BOTH or neither. -->
-    <Parameter name="ssl.pem.key.path" value="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_PRIVKEY_"/>
-    <Parameter name="ssl.pem.cert.path" value="/etc/letsencrypt/live/_BASE_DOMAIN_/_HTTPS_FULLCHAIN_"/>
-    <!-- <Parameter name="ssl.pem.config.path" value=""/>  optional; defaults to a writable temp path -->
+    <Parameter name="ssl.pem.key.path" value="_HTTPS_CERT_PATH_/_HTTPS_PRIVKEY_"/>
+    <Parameter name="ssl.pem.cert.path" value="_HTTPS_CERT_PATH_/_HTTPS_FULLCHAIN_"/>
+    <Parameter name="ssl.pem.config.path" value="/var/lib/hmdm/mqtt/mqtt-broker.pemcfg"/>
 
     <!-- Display X-Forwarded-For instead of source IP -->
     <!-- <Parameter name="plugin.audit.display.forwarded.ip" value="0"/> -->
