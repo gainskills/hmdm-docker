@@ -19,17 +19,7 @@ xml_sed_escape() {
 for DIR in cache files plugins logs; do
    [ -d "$BASE_DIR/$DIR" ] || mkdir -p "$BASE_DIR/$DIR"
 done
-
-if [ ! -z "$LOCAL_IP" ]; then
-    if ! grep -q "$BASE_DOMAIN" /etc/hosts || [ "$FORCE_RECONFIGURE" = "true" ]; then
-        # Create a temporary file for sed output, then overwrite original
-        # This is safer than direct in-place editing with `grep -v > /etc/hosts~` then `cp`
-        sed "/$BASE_DOMAIN/d" /etc/hosts > /etc/hosts.tmp
-        cp /etc/hosts.tmp /etc/hosts
-        rm -f /etc/hosts.tmp
-        echo "$LOCAL_IP $BASE_DOMAIN" >> /etc/hosts
-    fi
-fi
+[ -d /var/lib/hmdm/mqtt ] || mkdir -p /var/lib/hmdm/mqtt
 
 HMDM_WAR="$(basename -- "${HMDM_URL%%\?*}")"
 # Include the full URL in the cache key. This prevents a temporary test URL
@@ -252,9 +242,10 @@ if grep -q 'name="ssl.keystore.password"' "$ROOT_XML"; then
     fi
 fi
 
-# Java 21 Artemis watches this shared file for an atomic replace after Certbot
-# renews the PEM files. Add it to existing PEM-based configurations as well as
-# newly generated ones.
+# HMDM creates this local PEM configuration and its parent directory on startup.
+# Artemis watches the referenced certificate/key files for renewal; Certbot does
+# not manage this configuration. Keep existing PEM-based configurations aligned
+# with the template without replacing operator-provided config paths.
 if grep -q 'name="ssl.pem.cert.path"' "$ROOT_XML" && ! grep -q 'name="ssl.pem.config.path"' "$ROOT_XML"; then
     sed -i \
         '/name="ssl.pem.cert.path"/a\    <Parameter name="ssl.pem.config.path" value="/var/lib/hmdm/mqtt/mqtt-broker.pemcfg"/>' \

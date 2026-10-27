@@ -48,7 +48,7 @@ EXPOSE 8080 \
 RUN apt-get update -y && apt-get upgrade -y \
 	&& apt-get install -y --no-install-recommends aapt wget sed postgresql-client \
 	&& apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost /var/lib/hmdm/mqtt
+    && mkdir -p /usr/local/tomcat/conf/Catalina/localhost
 
 COPY docker-entrypoint.sh /
 COPY update-web-app-docker.sh /opt/hmdm/

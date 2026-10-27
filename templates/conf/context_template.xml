@@ -90,6 +90,7 @@
          fullchain.pem is used as the cert. Set BOTH or neither. -->
     <Parameter name="ssl.pem.key.path" value="_HTTPS_CERT_PATH_/_HTTPS_PRIVKEY_"/>
     <Parameter name="ssl.pem.cert.path" value="_HTTPS_CERT_PATH_/_HTTPS_FULLCHAIN_"/>
+    <!-- Created by HMDM inside the container; no shared MQTT volume is needed. -->
     <Parameter name="ssl.pem.config.path" value="/var/lib/hmdm/mqtt/mqtt-broker.pemcfg"/>
 
     <!-- Display X-Forwarded-For instead of source IP -->

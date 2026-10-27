@@ -17,7 +17,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/letsencrypt:/etc/letsencrypt
-      - ./volumes/mqtt:/var/lib/hmdm/mqtt
     ports:
       - 80:80
     entrypoint: /bin/sh
@@ -25,23 +24,13 @@ services:
       - -c
       - |
         trap exit TERM INT
-        write_mqtt_pemcfg() {
-          mkdir -p /var/lib/hmdm/mqtt
-          tmp="/var/lib/hmdm/mqtt/.mqtt-broker.pemcfg.tmp"
-          printf 'source.key=/etc/letsencrypt/live/%s/privkey.pem\nsource.cert=/etc/letsencrypt/live/%s/fullchain.pem\n' \
-            "${BASE_DOMAIN}" "${BASE_DOMAIN}" > "$$tmp"
-          mv -f "$$tmp" /var/lib/hmdm/mqtt/mqtt-broker.pemcfg
-        }
-        until certbot certonly --non-interactive --agree-tos --keep-until-expiring -m "${ADMIN_EMAIL}" --standalone -d "${BASE_DOMAIN}"; do
+        until certbot certonly --non-interactive --agree-tos --keep-until-expiring -m "${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}" --standalone -d "${BASE_DOMAIN:?Set BASE_DOMAIN in .env}"; do
           echo "Certificate issuance failed; retrying in 5 minutes"
           sleep 5m & wait $$!
         done
-        write_mqtt_pemcfg
         while :; do
           sleep 12h & wait $$!
-          if certbot renew --quiet; then
-            write_mqtt_pemcfg
-          else
+          if ! certbot renew --quiet; then
             echo "Certificate renewal failed; retrying in 12 hours" >&2
           fi
         done
@@ -52,13 +41,13 @@ services:
     image: ${POSTGRES_IMAGE:-postgres:12-alpine}
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${SQL_USER}
-      POSTGRES_PASSWORD: ${SQL_PASS}
-      POSTGRES_DB: ${SQL_BASE}
+      POSTGRES_USER: ${SQL_USER:?Set SQL_USER in .env}
+      POSTGRES_PASSWORD: ${SQL_PASS:?Set SQL_PASS in .env}
+      POSTGRES_DB: ${SQL_BASE:?Set SQL_BASE in .env}
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SQL_USER} -d ${SQL_BASE}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SQL_USER:?Set SQL_USER in .env} -d ${SQL_BASE:?Set SQL_BASE in .env}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -70,48 +59,71 @@ services:
       # Uncomment this port forwarding if you want to use plain HTTP instead of HTTPS
       #- 80:8080
       - 443:8443
-      - 31000:31000
-    # Uncomment this DNS setting if mqtt server is running over tls
-    #extra_hosts:
-    #  - "${BASE_DOMAIN}:127.0.0.1"
+      - "${MQTT_PORT:-31000}:${MQTT_PORT:-31000}"
+    # Reach the embedded MQTT broker locally using its TLS certificate hostname.
+    extra_hosts:
+      - "${BASE_DOMAIN:?Set BASE_DOMAIN in .env}:127.0.0.1"
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
       - ./volumes/letsencrypt:/etc/letsencrypt:ro
-      - ./volumes/mqtt:/var/lib/hmdm/mqtt
       - ./volumes/hmdm-config:/usr/local/tomcat/conf/Catalina/localhost
     depends_on:
       postgresql:
         condition: service_healthy
     environment:
+      # Database connection.
       SQL_HOST: postgresql
-      SQL_USER: ${SQL_USER}
-      SQL_BASE: ${SQL_BASE}
-      SQL_PASS: ${SQL_PASS}
-      BASE_DOMAIN: ${BASE_DOMAIN}
-      LOCAL_IP: ${LOCAL_IP:-}
-      PROTOCOL: ${PROTOCOL}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
-      HTTPS_CERT_PATH: ${HTTPS_CERT_PATH:-}
+      SQL_BASE: ${SQL_BASE:?Set SQL_BASE in .env}
+      SQL_USER: ${SQL_USER:?Set SQL_USER in .env}
+      SQL_PASS: ${SQL_PASS:?Set SQL_PASS in .env}
+
+      # Hostname used for certificates and application identity.
+      BASE_DOMAIN: ${BASE_DOMAIN:?Set BASE_DOMAIN in .env}
+      PROTOCOL: ${PROTOCOL:-https}
+      # Public application URL; override for a different host, port or proxy URL.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-${PROTOCOL:-https}://${BASE_DOMAIN:?Set BASE_DOMAIN in .env}}
+
+      # Certificate directory and whether to wait for Certbot-issued files.
+      HTTPS_CERT_PATH: ${HTTPS_CERT_PATH:-/etc/letsencrypt/live/${BASE_DOMAIN:?Set BASE_DOMAIN in .env}}
       HTTPS_LETSENCRYPT: ${HTTPS_LETSENCRYPT:-true}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
+
+      # Application setup and deployment.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL in .env}
       SHARED_SECRET: ${SHARED_SECRET:?Set SHARED_SECRET in .env}
-      HMDM_VARIANT: ${HMDM_VARIANT}
-      DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS}
-      HMDM_URL: ${HMDM_URL}
+      HMDM_VARIANT: ${HMDM_VARIANT:-os}
+      FORCE_RECONFIGURE: ${FORCE_RECONFIGURE:-false}
+      # Explicitly set an empty value for public WAR downloads.
+      DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS?Set DOWNLOAD_CREDENTIALS in .env (empty for public downloads)}
+      # These have no entrypoint fallback; empty values override image defaults.
+      HMDM_URL: ${HMDM_URL:?Set HMDM_URL in .env}
       HMDM_WAR_SHA256: ${HMDM_WAR_SHA256:-}
-      SECURE_ENROLLMENT: ${SECURE_ENROLLMENT}
-      CLIENT_VERSION: ${CLIENT_VERSION}
-      FORCE_RECONFIGURE: ${FORCE_RECONFIGURE:-}
-      SMTP_HOST: ${SMTP_HOST}
+      CLIENT_VERSION: ${CLIENT_VERSION:?Set CLIENT_VERSION in .env}
+
+      # Enrollment and optional IP address restrictions.
+      SECURE_ENROLLMENT: ${SECURE_ENROLLMENT:-1}
+      DEVICE_ALLOWED_ADDRESS: ${DEVICE_ALLOWED_ADDRESS:-}
+      UI_ALLOWED_ADDRESS: ${UI_ALLOWED_ADDRESS:-}
+
+      # Outgoing email.
+      SMTP_HOST: ${SMTP_HOST:-smtp.office365.com}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SSL: ${SMTP_SSL:-0}
-      SMTP_STARTTLS: ${SMTP_STARTTLS}
-      SMTP_USERNAME: ${SMTP_USERNAME}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM: ${SMTP_FROM:-${SMTP_USERNAME}}
-      MQTT_PORT: ${MQTT_PORT}
-      MQTT_SERVER_URI: ${MQTT_SERVER_URI}
-      MQTT_ADMIN_PASSWORD: ${MQTT_ADMIN_PASSWORD}
-      JWT_SECRETKEY: ${JWT_SECRETKEY}
-      JWT_VALIDITY: ${JWT_VALIDITY}
-      JWT_VALIDITYREMEMBERME: ${JWT_VALIDITYREMEMBERME}
+      SMTPSSL_VER: ${SMTPSSL_VER:-TLSv1.2}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-1}
+      SMTP_USERNAME: ${SMTP_USERNAME:?Set SMTP_USERNAME in .env}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP_PASSWORD in .env}
+      SMTP_FROM: ${SMTP_FROM:-${SMTP_USERNAME:?Set SMTP_USERNAME in .env}}
+
+      # false uses HMDM's embedded broker; true uses an external broker.
+      MQTT_EXTERNAL: ${MQTT_EXTERNAL:-false}
+      # Embedded broker port, also used by the Docker port mapping above.
+      MQTT_PORT: ${MQTT_PORT:-31000}
+      # Embedded listener or external broker address; defaults to MQTT_PORT.
+      MQTT_SERVER_URI: ${MQTT_SERVER_URI:-tcp://0.0.0.0:${MQTT_PORT:-31000}}
+      MQTT_MSG_DELAY: ${MQTT_MSG_DELAY:-100}
+      MQTT_ADMIN_PASSWORD: ${MQTT_ADMIN_PASSWORD:?Set MQTT_ADMIN_PASSWORD in .env}
+
+      # Login token secret and lifetimes in seconds.
+      JWT_SECRETKEY: ${JWT_SECRETKEY:?Set JWT_SECRETKEY in .env}
+      JWT_VALIDITY: ${JWT_VALIDITY:-86400}
+      JWT_VALIDITYREMEMBERME: ${JWT_VALIDITYREMEMBERME:-2592000}

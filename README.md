@@ -58,7 +58,7 @@ the domain where Headwind MDM should be installed.
 
 To create the container, use the command:
 
-    docker run -d -p 443:8443 -p 31000:31000 -e SQL_HOST=database.host -e SQL_BASE=hmdm -e SQL_USER=hmdm -e SQL_PASS=password -e BASE_DOMAIN=build.h-mdm.com -v /etc/letsencrypt:/etc/letsencrypt:ro -v $(pwd)/volumes/work:/usr/local/tomcat/work --name="hmdm" headwindmdm/hmdm:0.1.7
+    docker run -d -p 443:8443 -p 31000:31000 --add-host build.h-mdm.com:127.0.0.1 -e SQL_HOST=database.host -e SQL_BASE=hmdm -e SQL_USER=hmdm -e SQL_PASS=password -e BASE_DOMAIN=build.h-mdm.com -v /etc/letsencrypt:/etc/letsencrypt:ro -v $(pwd)/volumes/work:/usr/local/tomcat/work --name="hmdm" headwindmdm/hmdm:0.1.7
 
 If everything is fine, Headwind MDM will become available via the url
 `https://your-mdm-domain.com` in a few seconds.
@@ -216,10 +216,21 @@ To use plain HTTP, edit the contents of the docker-compose.yaml:
 ## Certificate renewal
 
 The Compose Certbot service stays running and checks for renewal every 12 hours.
-Tomcat reads the renewed PEM files directly. The Certbot service also rewrites
-the shared Artemis PEM configuration after a successful renewal, which triggers
-the embedded MQTT broker to reload without converting the certificate to a Java
-keystore.
+Certbot only manages the certificates. HMDM mounts them read-only, and both Tomcat
+and the embedded MQTT broker use those PEM files directly.
+
+The PEM-capable HMDM application creates its own local
+`/var/lib/hmdm/mqtt/mqtt-broker.pemcfg` and parent directory at startup. Artemis
+watches the referenced certificate and private-key files for changes and reloads
+them in-process. No shared MQTT volume or Certbot MQTT hook is required. The
+generated configuration is recreated when the container is replaced; it does not
+need to be persisted. Existing `ssl.pem.config.path` customizations are preserved.
+
+Compose uses `extra_hosts` to resolve `BASE_DOMAIN` to `127.0.0.1` inside HMDM,
+allowing local MQTT connections to use the TLS certificate hostname. Docker
+manages this mapping; the entrypoint does not edit `/etc/hosts`. Adjust or remove
+the mapping if that hostname must reach another server, such as an external
+MQTT broker. Recreate the HMDM container after changing `extra_hosts`.
 
 ## PostgreSQL major versions
 
